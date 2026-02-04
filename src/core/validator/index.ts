@@ -94,13 +94,23 @@ function extractHandlersFromFile(content: string, file: string): HandlerAnalysis
   const handlers: HandlerAnalysis[] = []
 
   // Match MSW http.* handlers
-  // Pattern: http.get('/path', ...) or http.get('http://base/path', ...)
-  const httpPattern = /http\.(get|post|put|patch|delete|head|options)\s*\(\s*['"`]([^'"`]+)['"`]/gi
+  // Patterns:
+  //   http.get('/path', ...)
+  //   http.get(`${baseURL}/path`, ...)
+  //   http.get('http://base/path', ...)
+  const httpPattern = /http\.(get|post|put|patch|delete|head|options)\s*\(\s*[`'"]([^`'"]+)[`'"]/gi
 
   let match: RegExpExecArray | null
   while ((match = httpPattern.exec(content)) !== null) {
     const method = match[1].toLowerCase()
     let urlPath = match[2]
+
+    // Strip template literal variables like ${baseURL}, ${BASE_URL}, etc.
+    urlPath = urlPath.replace(/\$\{[^}]+\}/g, '')
+
+    // Convert MSW path params :id to OpenAPI style {id} for comparison
+    // (we'll handle this in pathsMatch, but normalize here too)
+    urlPath = urlPath.replace(/^\/+/, '/') // Ensure single leading slash
 
     // Extract path from full URL if needed
     try {
@@ -108,6 +118,11 @@ function extractHandlersFromFile(content: string, file: string): HandlerAnalysis
       urlPath = url.pathname
     } catch {
       // Not a full URL, use as-is
+    }
+
+    // Skip empty paths
+    if (!urlPath || urlPath === '/') {
+      continue
     }
 
     handlers.push({
