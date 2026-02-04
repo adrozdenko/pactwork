@@ -14,6 +14,7 @@ interface ValidateOptions {
   format?: string
   output?: string
   failOnWarning?: boolean
+  skipValidation?: boolean
 }
 
 export async function validateCommand(options: ValidateOptions): Promise<void> {
@@ -36,7 +37,9 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
 
     spinner.text = 'Validating handlers against spec...'
 
-    const result = await validateHandlers(specPath, handlersDir)
+    const result = await validateHandlers(specPath, handlersDir, {
+      skipValidation: options.skipValidation,
+    })
 
     spinner.stop()
 
@@ -56,6 +59,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
         specPath,
         outputDir: handlersDir,
         typescript: config?.generate?.typescript ?? true,
+        skipValidation: options.skipValidation,
       })
 
       fixSpinner.succeed('Handlers regenerated')

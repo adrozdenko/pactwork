@@ -1,20 +1,28 @@
 import fs from 'fs-extra'
 import { glob } from 'glob'
-import { parseSpec } from '../parser/index.js'
+import { parseSpec, parseSpecFast } from '../parser/index.js'
 import type { Endpoint } from '../parser/types.js'
 import type { ValidationResult, DriftItem, Suggestion, HandlerAnalysis } from './types.js'
 
 export type { ValidationResult, DriftItem, Suggestion } from './types.js'
+
+export interface ValidateOptions {
+  /** Skip OpenAPI spec validation */
+  skipValidation?: boolean
+}
 
 /**
  * Validate that handlers match the OpenAPI specification
  */
 export async function validateHandlers(
   specPath: string,
-  handlersDir: string
+  handlersDir: string,
+  options: ValidateOptions = {}
 ): Promise<ValidationResult> {
-  // Parse the spec
-  const spec = await parseSpec(specPath)
+  // Parse the spec (use fast parsing if skipValidation is true)
+  const spec = options.skipValidation
+    ? await parseSpecFast(specPath)
+    : await parseSpec(specPath)
 
   // Analyze existing handlers
   const handlers = await analyzeHandlers(handlersDir)

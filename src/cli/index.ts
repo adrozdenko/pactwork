@@ -51,6 +51,7 @@ program
   .option('--format <type>', 'Output format (console, json, markdown, github)', 'console')
   .option('--output <path>', 'Output file for reports')
   .option('--fail-on-warning', 'Treat warnings as errors')
+  .option('--skip-validation', 'Skip OpenAPI spec validation (for specs with minor issues)')
   .action(validateCommand)
 
 program
@@ -68,6 +69,7 @@ program
   .option('--from <version>', 'Compare from version')
   .option('--to <version>', 'Compare to version')
   .option('--format <type>', 'Output format', 'console')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
   .action(diffCommand)
 
 program
@@ -76,6 +78,7 @@ program
   .option('--version <ver>', 'Version to check')
   .option('--environment <env>', 'Target environment')
   .option('--ci', 'CI mode (exit codes only)')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
   .action(canIDeployCommand)
 
 program.parse()

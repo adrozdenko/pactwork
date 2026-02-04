@@ -7,6 +7,7 @@ interface CanIDeployOptions {
   version?: string
   environment?: string
   ci?: boolean
+  skipValidation?: boolean
 }
 
 export async function canIDeployCommand(options: CanIDeployOptions): Promise<void> {
@@ -28,7 +29,9 @@ export async function canIDeployCommand(options: CanIDeployOptions): Promise<voi
 
     // Run validation
     spinner.text = 'Validating handlers against spec...'
-    const result = await validateHandlers(specPath, handlersDir)
+    const result = await validateHandlers(specPath, handlersDir, {
+      skipValidation: options.skipValidation,
+    })
 
     spinner.stop()
 

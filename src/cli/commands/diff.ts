@@ -8,6 +8,7 @@ interface DiffOptions {
   from?: string
   to?: string
   format?: string
+  skipValidation?: boolean
 }
 
 export async function diffCommand(options: DiffOptions): Promise<void> {
@@ -27,7 +28,9 @@ export async function diffCommand(options: DiffOptions): Promise<void> {
 
     spinner.text = 'Comparing spec with handlers...'
 
-    const result = await validateHandlers(specPath, handlersDir)
+    const result = await validateHandlers(specPath, handlersDir, {
+      skipValidation: options.skipValidation,
+    })
 
     spinner.stop()
 
