@@ -15,6 +15,8 @@ export interface GeneratorOptions {
   maxArrayLength?: number
   /** Generate static (non-random) data */
   static?: boolean
+  /** Skip OpenAPI spec validation (for specs with minor issues) */
+  skipValidation?: boolean
   /** AI configuration */
   ai?: AIConfig
 }

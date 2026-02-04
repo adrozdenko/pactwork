@@ -3,7 +3,7 @@ import { promisify } from 'node:util'
 import { createHash } from 'node:crypto'
 import fs from 'fs-extra'
 import path from 'path'
-import { parseSpec } from '../parser/index.js'
+import { parseSpec, parseSpecFast } from '../parser/index.js'
 import type { GeneratorOptions, GeneratorResult } from './types.js'
 
 export type { GeneratorOptions, GeneratorResult, HandlerInfo } from './types.js'
@@ -24,7 +24,10 @@ export async function generateHandlers(options: GeneratorOptions): Promise<Gener
   const specHash = createHash('sha256').update(specContent).digest('hex').slice(0, 12)
 
   // Parse spec to get endpoint info
-  const spec = await parseSpec(specPath)
+  // Use fast parsing (no validation) if skipValidation is true
+  const spec = options.skipValidation
+    ? await parseSpecFast(specPath)
+    : await parseSpec(specPath)
 
   // Build arguments for msw-auto-mock
   const args = buildArgs(options)

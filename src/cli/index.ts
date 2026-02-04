@@ -38,6 +38,7 @@ program
   .option('--static', 'Generate static (non-random) data')
   .option('--force', 'Overwrite without confirmation')
   .option('--dry-run', 'Show what would be generated')
+  .option('--skip-validation', 'Skip OpenAPI spec validation (for specs with minor issues)')
   .action(generateCommand)
 
 program

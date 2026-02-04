@@ -13,6 +13,7 @@ interface GenerateOptions {
   static?: boolean
   force?: boolean
   dryRun?: boolean
+  skipValidation?: boolean
 }
 
 export async function generateCommand(options: GenerateOptions): Promise<void> {
@@ -61,6 +62,7 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
       includes,
       excludes,
       static: options.static,
+      skipValidation: options.skipValidation,
     })
 
     spinner.succeed(`Generated ${result.handlers.length} handlers`)
