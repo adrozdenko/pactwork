@@ -5,6 +5,17 @@ All notable changes to Pactwork will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **GitHub Action** — Use `adrozdenko/pactwork@v1` in your workflows
+- **TypeScript Type Generation** — New `pactwork types` command
+  - Generate interfaces from OpenAPI schemas
+  - Request/response types per endpoint
+  - Path and query parameter types
+- **More Tests** — 43 tests (up from 2)
+
 ## [1.0.0] - 2025-02-05
 
 ### Added

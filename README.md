@@ -73,6 +73,7 @@ OpenAPI Spec → Pactwork → MSW Handlers + Validation + CI Gate
 | `pactwork init` | Set up Pactwork in your project |
 | `pactwork generate` | Create MSW handlers from spec |
 | `pactwork validate` | Check handlers match spec |
+| `pactwork types` | Generate TypeScript types from spec |
 | `pactwork watch` | Auto-regenerate on spec changes |
 | `pactwork diff` | Show what's different |
 | `pactwork can-i-deploy` | CI gate — exit 0 if safe, 1 if not |
