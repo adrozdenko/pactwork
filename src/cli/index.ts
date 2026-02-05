@@ -12,6 +12,7 @@ import { typesCommand } from './commands/types.js'
 import { breakingCommand } from './commands/breaking.js'
 import { recordCommand } from './commands/record.js'
 import { verifyCommand } from './commands/verify.js'
+import { scenariosCommand } from './commands/scenarios.js'
 
 const require = createRequire(import.meta.url)
 const pkg = require('../../package.json') as { version: string }
@@ -47,6 +48,7 @@ program
   .option('--force', 'Overwrite without confirmation')
   .option('--dry-run', 'Show what would be generated')
   .option('--skip-validation', 'Skip OpenAPI spec validation (for specs with minor issues)')
+  .option('--with-scenarios', 'Generate scenario catalog for error/edge case testing')
   .action(generateCommand)
 
 program
@@ -129,5 +131,15 @@ program
   .option('--ci', 'CI mode (exit codes only)')
   .option('--skip-validation', 'Skip OpenAPI spec validation')
   .action(verifyCommand)
+
+program
+  .command('scenarios')
+  .description('List and analyze scenarios from OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--list', 'List all scenarios (default)')
+  .option('--coverage', 'Show scenario coverage statistics')
+  .option('--format <type>', 'Output format (console, json)', 'console')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .action(scenariosCommand)
 
 program.parse()

@@ -31,9 +31,9 @@ Pactwork enables AI agents to keep API mocks perfectly in sync with OpenAPI spec
 
 ---
 
-### Phase 2: Scenario Catalog 🔜 NEXT
+### Phase 2: Scenario Catalog ✅ COMPLETE
 
-**Status:** Planning
+**Status:** Released in v1.1.0
 
 **Objective:** Generate a scenario catalog from OpenAPI spec — not just success handlers, but every response code defined in the spec.
 
@@ -230,7 +230,6 @@ Things Pactwork intentionally does NOT do:
 Want to help build the future phases? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Priority areas:
-- Phase 2: Scenario catalog generation
 - Phase 3: Runtime utility design
 - Phase 4: Storybook addon
 
@@ -241,8 +240,8 @@ Priority areas:
 | Phase | Target | Status |
 |-------|--------|--------|
 | Phase 1 | Q1 2025 | ✅ Complete |
-| Phase 2 | Q2 2025 | 🔜 Next |
-| Phase 3 | Q3 2025 | 🔮 Planned |
-| Phase 4 | Q4 2025 | 🔮 Future |
+| Phase 2 | Q1 2025 | ✅ Complete |
+| Phase 3 | Q2 2025 | 🔜 Next |
+| Phase 4 | Q3 2025 | 🔮 Planned |
 
 *Timelines are estimates. We ship when it's ready.*

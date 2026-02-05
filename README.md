@@ -70,13 +70,13 @@ The generated mocks power **functional prototypes** that behave like production 
 | Drift detection | ✅ Ready |
 | Breaking change detection | ✅ Ready |
 | Contract testing | ✅ Ready |
+| Scenario catalog (error states from spec) | ✅ Ready |
 
 ### Coming Soon
 
 | Feature | Status |
 |---------|--------|
-| Scenario catalog (error states from spec) | 🔜 Phase 2 |
-| Runtime utilities (`applyScenario`, `withLatency`) | 🔮 Phase 3 |
+| Runtime utilities (`applyScenario`, `withLatency`) | 🔜 Phase 3 |
 | Storybook addon | 🔮 Phase 4 |
 
 See [ROADMAP.md](ROADMAP.md) for the full vision.
@@ -149,6 +149,7 @@ Create a PR with the updated handlers. Include:
 | `pactwork types` | Generate TypeScript types | Type definition files |
 | `pactwork record` | Create contract from spec | Contract JSON |
 | `pactwork verify` | Check contract against spec | Verification report |
+| `pactwork scenarios` | List scenarios from spec | Scenario catalog |
 
 ### Key flags
 
@@ -158,6 +159,15 @@ pactwork validate --ci
 
 # Auto-fix — regenerate when drift found
 pactwork validate --fix
+
+# Generate handlers + scenario catalog for error testing
+pactwork generate --with-scenarios
+
+# List all scenarios from spec
+pactwork scenarios --list
+
+# Show scenario coverage statistics
+pactwork scenarios --coverage
 
 # Compare API versions
 pactwork breaking --old v1.yaml --new v2.yaml
