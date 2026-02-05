@@ -44,6 +44,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared error handling utilities across CLI commands
 - Clean code architecture with extracted helper functions
 - JSDoc documentation on all public and key internal functions
+- ESLint 9 with TypeScript support
+- Dynamic version from package.json
+
+### Documentation
+
+- Professional README with UX writing principles
+- Problem-first structure ("The Problem" leads)
+- Scannable command reference table
+- GitHub Actions CI workflow
+- Issue and PR templates
+- CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md
+- MIT LICENSE
 
 ## [0.1.0] - 2025-02-04
 
