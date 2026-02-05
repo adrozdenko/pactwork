@@ -2,6 +2,8 @@ import chalk from 'chalk'
 import ora from 'ora'
 import { loadConfig } from '../../core/config/index.js'
 import { validateHandlers } from '../../core/validator/index.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { handleCommandError } from '../utils.js'
 
 interface DiffOptions {
   spec?: string
@@ -18,12 +20,12 @@ export async function diffCommand(options: DiffOptions): Promise<void> {
     const config = await loadConfig()
 
     const specPath = options.spec ?? config?.spec?.path
-    const handlersDir = config?.generate?.output ?? './src/mocks'
+    const handlersDir = config?.generate?.output ?? DEFAULTS.OUTPUT_DIR
 
     if (!specPath) {
       spinner.fail('No OpenAPI spec specified')
       console.log(chalk.dim('Use --spec <path> or run pactwork init first'))
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     spinner.text = 'Comparing spec with handlers...'
@@ -86,8 +88,6 @@ export async function diffCommand(options: DiffOptions): Promise<void> {
     }
 
   } catch (error) {
-    spinner.fail('Diff failed')
-    console.error(chalk.red(error instanceof Error ? error.message : String(error)))
-    process.exit(1)
+    handleCommandError(spinner, 'Diff failed', error, EXIT_CODES.EXCEPTION)
   }
 }

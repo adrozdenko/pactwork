@@ -2,6 +2,8 @@ import chalk from 'chalk'
 import ora from 'ora'
 import { loadConfig } from '../../core/config/index.js'
 import { generateHandlers } from '../../core/generator/index.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { handleCommandError } from '../utils.js'
 
 interface GenerateOptions {
   spec?: string
@@ -25,13 +27,13 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
 
     // Merge CLI options with config
     const specPath = options.spec ?? config?.spec?.path
-    const outputDir = options.output ?? config?.generate?.output ?? './src/mocks'
+    const outputDir = options.output ?? config?.generate?.output ?? DEFAULTS.OUTPUT_DIR
     const typescript = options.typescript ?? config?.generate?.typescript ?? true
 
     if (!specPath) {
       spinner.fail('No OpenAPI spec specified')
       console.log(chalk.dim('Use --spec <path> or run pactwork init first'))
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     spinner.text = `Parsing OpenAPI spec: ${specPath}`
@@ -78,8 +80,6 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     console.log(chalk.dim('  2.'), 'Run', chalk.cyan('pactwork validate'), 'to verify handlers match spec')
 
   } catch (error) {
-    spinner.fail('Failed to generate handlers')
-    console.error(chalk.red(error instanceof Error ? error.message : String(error)))
-    process.exit(1)
+    handleCommandError(spinner, 'Failed to generate handlers', error, EXIT_CODES.EXCEPTION)
   }
 }

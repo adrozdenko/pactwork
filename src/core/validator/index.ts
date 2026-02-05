@@ -70,7 +70,10 @@ export async function validateHandlers(
 }
 
 /**
- * Analyze handler files to extract endpoint information
+ * Analyze handler files in a directory to extract endpoint information.
+ * Recursively scans for .ts and .js files and extracts MSW handler patterns.
+ * @param handlersDir - Directory containing MSW handlers
+ * @returns Array of all handler definitions found
  */
 async function analyzeHandlers(handlersDir: string): Promise<HandlerAnalysis[]> {
   const handlers: HandlerAnalysis[] = []
@@ -96,7 +99,12 @@ async function analyzeHandlers(handlersDir: string): Promise<HandlerAnalysis[]> 
 }
 
 /**
- * Extract handler definitions from file content using regex
+ * Extract MSW handler definitions from file content using regex patterns.
+ * Parses http.get(), http.post(), etc. calls and extracts path information.
+ * Handles template literals (${baseURL}/path) and full URLs.
+ * @param content - File content to parse
+ * @param file - File path for reference in results
+ * @returns Array of extracted handler definitions
  */
 function extractHandlersFromFile(content: string, file: string): HandlerAnalysis[] {
   const handlers: HandlerAnalysis[] = []
@@ -144,7 +152,11 @@ function extractHandlersFromFile(content: string, file: string): HandlerAnalysis
 }
 
 /**
- * Find a handler that matches an endpoint
+ * Find a handler that matches an endpoint by method and path.
+ * Uses flexible path matching to handle both OpenAPI {param} and MSW :param styles.
+ * @param handlers - Array of analyzed handlers from the codebase
+ * @param endpoint - The OpenAPI endpoint to find a handler for
+ * @returns The matching handler, or undefined if not found
  */
 function findHandler(handlers: HandlerAnalysis[], endpoint: Endpoint): HandlerAnalysis | undefined {
   return handlers.find(h => {
@@ -159,7 +171,11 @@ function findHandler(handlers: HandlerAnalysis[], endpoint: Endpoint): HandlerAn
 }
 
 /**
- * Find an endpoint that matches a handler
+ * Find an endpoint that matches a handler by method and path.
+ * Inverse of findHandler - checks if a handler has a corresponding spec endpoint.
+ * @param endpoints - Array of endpoints from the OpenAPI spec
+ * @param handler - The handler to find an endpoint for
+ * @returns The matching endpoint, or undefined if handler is extra
  */
 function findEndpoint(endpoints: Endpoint[], handler: HandlerAnalysis): Endpoint | undefined {
   return endpoints.find(e => {
@@ -172,7 +188,11 @@ function findEndpoint(endpoints: Endpoint[], handler: HandlerAnalysis): Endpoint
 }
 
 /**
- * Check if two paths match, handling path parameters
+ * Check if two paths match, handling different path parameter syntaxes.
+ * Supports OpenAPI style {id}, MSW style :id, and exact matches.
+ * @param handlerPath - Path from the MSW handler (e.g., "/users/:id")
+ * @param specPath - Path from OpenAPI spec (e.g., "/users/{id}")
+ * @returns true if paths match semantically
  */
 function pathsMatch(handlerPath: string, specPath: string): boolean {
   // Convert OpenAPI path params {id} to MSW/regex style :id or *
@@ -189,7 +209,10 @@ function pathsMatch(handlerPath: string, specPath: string): boolean {
 }
 
 /**
- * Generate helpful suggestions based on drift
+ * Generate actionable suggestions based on detected drift.
+ * Provides commands and guidance to fix missing or extra handlers.
+ * @param drift - Array of drift items (missing, extra, or mismatched)
+ * @returns Array of suggestions with messages and optional commands
  */
 function generateSuggestions(drift: DriftItem[]): Suggestion[] {
   const suggestions: Suggestion[] = []

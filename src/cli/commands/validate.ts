@@ -4,6 +4,8 @@ import { loadConfig } from '../../core/config/index.js'
 import { validateHandlers } from '../../core/validator/index.js'
 import { reportValidation } from '../../core/reporter/index.js'
 import { generateHandlers } from '../../core/generator/index.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { handleCommandError } from '../utils.js'
 import type { ReportFormat } from '../../core/reporter/types.js'
 
 interface ValidateOptions {
@@ -26,13 +28,13 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
 
     // Merge CLI options with config
     const specPath = options.spec ?? config?.spec?.path
-    const handlersDir = options.handlers ?? config?.generate?.output ?? './src/mocks'
+    const handlersDir = options.handlers ?? config?.generate?.output ?? DEFAULTS.OUTPUT_DIR
     const format = (options.format ?? 'console') as ReportFormat
 
     if (!specPath) {
       spinner.fail('No OpenAPI spec specified')
       console.log(chalk.dim('Use --spec <path> or run pactwork init first'))
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     spinner.text = 'Validating handlers against spec...'
@@ -68,16 +70,14 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
 
     // Exit with appropriate code
     if (!result.valid) {
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     if (options.failOnWarning && result.drift.some(d => d.severity === 'warning')) {
-      process.exit(2)
+      process.exit(EXIT_CODES.WARNINGS_AS_ERRORS)
     }
 
   } catch (error) {
-    spinner.fail('Validation failed')
-    console.error(chalk.red(error instanceof Error ? error.message : String(error)))
-    process.exit(10)
+    handleCommandError(spinner, 'Validation failed', error, EXIT_CODES.EXCEPTION)
   }
 }

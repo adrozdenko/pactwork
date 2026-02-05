@@ -17,6 +17,8 @@ export interface GeneratorOptions {
   static?: boolean
   /** Skip OpenAPI spec validation (for specs with minor issues) */
   skipValidation?: boolean
+  /** Enable verbose logging (surfaces fallback behavior) */
+  verbose?: boolean
   /** AI configuration */
   ai?: AIConfig
 }

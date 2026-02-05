@@ -4,6 +4,8 @@ import { loadConfig } from '../../core/config/index.js'
 import { generateHandlers } from '../../core/generator/index.js'
 import { validateHandlers } from '../../core/validator/index.js'
 import { reportValidation } from '../../core/reporter/index.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { formatError } from '../utils.js'
 
 interface WatchOptions {
   validate?: boolean
@@ -19,11 +21,11 @@ export async function watchCommand(options: WatchOptions): Promise<void> {
     if (!specPath) {
       console.error(chalk.red('No OpenAPI spec configured'))
       console.log(chalk.dim('Run pactwork init first'))
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
-    const outputDir = config?.generate?.output ?? './src/mocks'
-    const debounceMs = parseInt(options.debounce ?? '300', 10)
+    const outputDir = config?.generate?.output ?? DEFAULTS.OUTPUT_DIR
+    const debounceMs = parseInt(options.debounce ?? String(DEFAULTS.WATCH_DEBOUNCE_MS), 10)
 
     console.log(chalk.bold('Watching for changes...'))
     console.log(chalk.dim(`  Spec: ${specPath}`))
@@ -57,7 +59,7 @@ export async function watchCommand(options: WatchOptions): Promise<void> {
         }
 
       } catch (error) {
-        console.error(chalk.red('✗'), 'Generation failed:', error instanceof Error ? error.message : String(error))
+        console.error(chalk.red('✗'), 'Generation failed:', formatError(error))
       }
 
       console.log('')
@@ -88,11 +90,11 @@ export async function watchCommand(options: WatchOptions): Promise<void> {
       console.log('')
       console.log(chalk.dim('Stopping watch mode...'))
       watcher.close()
-      process.exit(0)
+      process.exit(EXIT_CODES.SUCCESS)
     })
 
   } catch (error) {
-    console.error(chalk.red('Watch failed:'), error instanceof Error ? error.message : String(error))
-    process.exit(1)
+    console.error(chalk.red('Watch failed:'), formatError(error))
+    process.exit(EXIT_CODES.EXCEPTION)
   }
 }

@@ -71,6 +71,10 @@ function normalizeSpec(api: OpenAPI.Document): ParsedSpec {
   }
 }
 
+/**
+ * Detect the OpenAPI specification version from the document.
+ * Supports Swagger 2.0, OpenAPI 3.0, and OpenAPI 3.1.
+ */
 function detectVersion(api: OpenAPI.Document): '2.0' | '3.0' | '3.1' {
   if ('swagger' in api && api.swagger === '2.0') {
     return '2.0'
@@ -88,38 +92,47 @@ function detectVersion(api: OpenAPI.Document): '2.0' | '3.0' | '3.1' {
   return '3.0'
 }
 
-function normalizeEndpoint(
-  path: string,
-  method: HttpMethod,
-  operation: OpenAPIV3.OperationObject,
-  pathItem: OpenAPIV3.PathItemObject
-): Endpoint {
-  // Combine path-level and operation-level parameters
+/**
+ * Extract and normalize parameters from path item and operation.
+ * Combines path-level and operation-level parameters.
+ */
+function extractParameters(
+  pathItem: OpenAPIV3.PathItemObject,
+  operation: OpenAPIV3.OperationObject
+): Parameter[] {
   const allParams = [
     ...(pathItem.parameters ?? []),
     ...(operation.parameters ?? []),
   ] as OpenAPIV3.ParameterObject[]
 
-  const parameters: Parameter[] = allParams.map(p => ({
+  return allParams.map(p => ({
     name: p.name,
     in: p.in as Parameter['in'],
     required: p.required,
     schema: p.schema ? normalizeSchema(p.schema as OpenAPIV3.SchemaObject) : undefined,
     description: p.description,
   }))
+}
 
-  // Normalize request body
-  let requestBody: RequestBody | undefined
-  if (operation.requestBody) {
-    const rb = operation.requestBody as OpenAPIV3.RequestBodyObject
-    requestBody = {
-      required: rb.required,
-      content: normalizeContent(rb.content),
-    }
+/**
+ * Extract and normalize request body from operation.
+ */
+function extractRequestBody(operation: OpenAPIV3.OperationObject): RequestBody | undefined {
+  if (!operation.requestBody) return undefined
+
+  const rb = operation.requestBody as OpenAPIV3.RequestBodyObject
+  return {
+    required: rb.required,
+    content: normalizeContent(rb.content),
   }
+}
 
-  // Normalize responses
+/**
+ * Extract and normalize responses from operation.
+ */
+function extractResponses(operation: OpenAPIV3.OperationObject): Record<string, ResponseSpec> {
   const responses: Record<string, ResponseSpec> = {}
+
   if (operation.responses) {
     for (const [statusCode, response] of Object.entries(operation.responses)) {
       const resp = response as OpenAPIV3.ResponseObject
@@ -130,15 +143,27 @@ function normalizeEndpoint(
     }
   }
 
+  return responses
+}
+
+/**
+ * Normalize an OpenAPI operation into an Endpoint structure.
+ */
+function normalizeEndpoint(
+  path: string,
+  method: HttpMethod,
+  operation: OpenAPIV3.OperationObject,
+  pathItem: OpenAPIV3.PathItemObject
+): Endpoint {
   return {
     path,
     method,
     operationId: operation.operationId,
     summary: operation.summary,
     tags: operation.tags,
-    parameters,
-    requestBody,
-    responses,
+    parameters: extractParameters(pathItem, operation),
+    requestBody: extractRequestBody(operation),
+    responses: extractResponses(operation),
   }
 }
 

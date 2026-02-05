@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import type { ValidationResult } from '../validator/types.js'
-import type { ReporterOptions, ReportFormat } from './types.js'
+import type { ReporterOptions } from './types.js'
 
 export type { ReportFormat, ReporterOptions } from './types.js'
 

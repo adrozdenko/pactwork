@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander'
+import { createRequire } from 'node:module'
 import { initCommand } from './commands/init.js'
 import { generateCommand } from './commands/generate.js'
 import { validateCommand } from './commands/validate.js'
@@ -8,12 +9,15 @@ import { watchCommand } from './commands/watch.js'
 import { diffCommand } from './commands/diff.js'
 import { canIDeployCommand } from './commands/can-i-deploy.js'
 
+const require = createRequire(import.meta.url)
+const pkg = require('../../package.json') as { version: string }
+
 const program = new Command()
 
 program
   .name('pactwork')
   .description('Contract-first API simulation framework - Mocks you can trust')
-  .version('0.0.1')
+  .version(pkg.version)
 
 program
   .command('init')

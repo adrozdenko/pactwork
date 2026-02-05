@@ -1,8 +1,9 @@
 import chalk from 'chalk'
 import ora from 'ora'
 import fs from 'fs-extra'
-import path from 'path'
 import { loadConfig } from '../../core/config/index.js'
+import { EXIT_CODES, OPENAPI_SPEC_CANDIDATES, DEFAULTS } from '../../constants.js'
+import { handleCommandError } from '../utils.js'
 
 interface InitOptions {
   spec?: string
@@ -22,7 +23,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
     if (existingConfig && !options.force) {
       spinner.fail('Pactwork is already initialized in this project')
       console.log(chalk.dim('Use --force to overwrite existing configuration'))
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     // Auto-detect OpenAPI spec if not provided
@@ -35,13 +36,13 @@ export async function initCommand(options: InitOptions): Promise<void> {
     if (!specPath) {
       spinner.fail('No OpenAPI specification found')
       console.log(chalk.dim('Use --spec <path> to specify the location'))
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     // Verify spec exists
     if (!await fs.pathExists(specPath)) {
       spinner.fail(`OpenAPI spec not found: ${specPath}`)
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     spinner.text = 'Creating configuration...'
@@ -52,7 +53,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
     // Create config file
     const configContent = generateConfigFile({
       specPath,
-      outputDir: options.output ?? './src/mocks',
+      outputDir: options.output ?? DEFAULTS.OUTPUT_DIR,
       typescript: useTypeScript,
     })
 
@@ -77,35 +78,21 @@ export async function initCommand(options: InitOptions): Promise<void> {
     console.log(chalk.dim(`Configuration saved to ${configFileName}`))
 
   } catch (error) {
-    spinner.fail('Failed to initialize Pactwork')
-    console.error(chalk.red(error instanceof Error ? error.message : String(error)))
-    process.exit(1)
+    handleCommandError(spinner, 'Failed to initialize Pactwork', error, EXIT_CODES.EXCEPTION)
   }
 }
 
-async function findOpenAPISpec(): Promise<string | null> {
-  const candidates = [
-    'openapi.yaml',
-    'openapi.yml',
-    'openapi.json',
-    'api/openapi.yaml',
-    'api/openapi.yml',
-    'api/openapi.json',
-    'spec/openapi.yaml',
-    'spec/openapi.yml',
-    'docs/openapi.yaml',
-    'swagger.yaml',
-    'swagger.yml',
-    'swagger.json',
-  ]
-
-  for (const candidate of candidates) {
+/**
+ * Search for OpenAPI specification in common locations.
+ * @returns Path to spec file if found, undefined otherwise
+ */
+async function findOpenAPISpec(): Promise<string | undefined> {
+  for (const candidate of OPENAPI_SPEC_CANDIDATES) {
     if (await fs.pathExists(candidate)) {
       return candidate
     }
   }
-
-  return null
+  return undefined
 }
 
 async function detectTypeScript(): Promise<boolean> {

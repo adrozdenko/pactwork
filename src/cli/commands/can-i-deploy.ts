@@ -2,6 +2,8 @@ import chalk from 'chalk'
 import ora from 'ora'
 import { loadConfig } from '../../core/config/index.js'
 import { validateHandlers } from '../../core/validator/index.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { handleCommandError } from '../utils.js'
 
 interface CanIDeployOptions {
   version?: string
@@ -17,14 +19,14 @@ export async function canIDeployCommand(options: CanIDeployOptions): Promise<voi
     const config = await loadConfig()
 
     const specPath = config?.spec?.path
-    const handlersDir = config?.generate?.output ?? './src/mocks'
+    const handlersDir = config?.generate?.output ?? DEFAULTS.OUTPUT_DIR
 
     if (!specPath) {
       spinner.fail('No OpenAPI spec configured')
       if (!options.ci) {
         console.log(chalk.dim('Run pactwork init first'))
       }
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     // Run validation
@@ -46,7 +48,7 @@ export async function canIDeployCommand(options: CanIDeployOptions): Promise<voi
         console.log(chalk.dim('All handlers match the OpenAPI specification.'))
         console.log(chalk.dim('No drift detected.'))
       }
-      process.exit(0)
+      process.exit(EXIT_CODES.SUCCESS)
     } else {
       if (options.ci) {
         // CI mode: minimal output
@@ -73,14 +75,10 @@ export async function canIDeployCommand(options: CanIDeployOptions): Promise<voi
         console.log(chalk.dim('  Run'), chalk.cyan('pactwork validate --fix'), chalk.dim('to regenerate handlers'))
         console.log(chalk.dim('  Or'), chalk.cyan('pactwork diff'), chalk.dim('to see detailed changes'))
       }
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
   } catch (error) {
-    spinner.fail('Check failed')
-    if (!options.ci) {
-      console.error(chalk.red(error instanceof Error ? error.message : String(error)))
-    }
-    process.exit(10)
+    handleCommandError(spinner, 'Check failed', error, EXIT_CODES.EXCEPTION)
   }
 }
