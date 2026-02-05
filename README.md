@@ -5,7 +5,7 @@
 <h1 align="center">Pactwork</h1>
 
 <p align="center">
-  <strong>Generate MSW mocks from OpenAPI specs. Detect drift. Ship with confidence.</strong>
+  <strong>Stop mock drift. Start shipping.</strong>
 </p>
 
 <p align="center">
@@ -15,168 +15,105 @@
 </p>
 
 <p align="center">
+  <a href="#the-problem">The Problem</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="#why-pactwork">Why Pactwork</a> •
   <a href="#commands">Commands</a> •
-  <a href="#configuration">Configuration</a> •
   <a href="#ci-integration">CI Integration</a>
 </p>
+
+---
+
+## The Problem
+
+Your frontend mocks lie to you.
+
+```
+Backend adds field → Mock doesn't have it → Tests pass → Production breaks
+```
+
+**Pactwork fixes this.** It generates MSW handlers from your OpenAPI spec and catches drift before it reaches production.
+
+| Before | After |
+|--------|-------|
+| Write mocks by hand | Generate from spec |
+| Mocks drift silently | Drift detected in CI |
+| Bugs found in prod | Bugs found in PR |
 
 ---
 
 ## Quick Start
 
 ```bash
-# Install
 npm install -D pactwork msw
-
-# Initialize from your OpenAPI spec
 npx pactwork init --spec ./openapi.yaml
-
-# Generate MSW handlers
 npx pactwork generate
-
-# Validate handlers match spec
 npx pactwork validate
 ```
 
-That's it. Your mocks now stay in sync with your API.
+Done. Your mocks stay in sync.
 
 ---
 
-## Why Pactwork?
-
-**The problem:** Frontend mocks drift from reality.
+## How It Works
 
 ```
-Backend adds required field → Mock doesn't have it → Tests pass → Prod breaks
+OpenAPI Spec → Pactwork → MSW Handlers + Validation + CI Gate
 ```
 
-**The solution:** Treat your OpenAPI spec as the single source of truth.
-
-```
-OpenAPI Spec → Pactwork → MSW Handlers + Validation + CI Gates
-```
-
-| Without Pactwork | With Pactwork |
-|------------------|---------------|
-| Write mocks by hand | Generate from spec |
-| Mocks drift silently | Drift detected instantly |
-| Find bugs in production | Find bugs in CI |
-| "Works on my machine" | Verified against contract |
+1. **Generate** — Create MSW handlers from your spec
+2. **Validate** — Check handlers match the spec
+3. **Gate** — Block deploys when mocks drift
 
 ---
 
 ## Commands
 
-### `pactwork init`
+| Command | What it does |
+|---------|--------------|
+| `pactwork init` | Set up Pactwork in your project |
+| `pactwork generate` | Create MSW handlers from spec |
+| `pactwork validate` | Check handlers match spec |
+| `pactwork watch` | Auto-regenerate on spec changes |
+| `pactwork diff` | Show what's different |
+| `pactwork can-i-deploy` | CI gate — exit 0 if safe, 1 if not |
 
-Initialize Pactwork in your project.
-
-```bash
-npx pactwork init --spec ./api/openapi.yaml
-```
-
-Creates configuration file and sets up directory structure.
-
-### `pactwork generate`
-
-Generate MSW handlers from your OpenAPI spec.
+### Common Options
 
 ```bash
-npx pactwork generate
+# Generate from specific spec
+pactwork generate --spec ./api/openapi.yaml --output ./src/mocks
+
+# Validate and auto-fix drift
+pactwork validate --fix
+
+# CI mode with strict exit codes
+pactwork validate --ci --format github
 ```
-
-Options:
-- `--spec <path>` — Path to OpenAPI spec
-- `--output <dir>` — Output directory (default: `./src/mocks`)
-- `--typescript` — Generate TypeScript files
-- `--skip-validation` — Skip strict spec validation
-
-### `pactwork validate`
-
-Check that handlers match the spec. Catches drift before it causes problems.
-
-```bash
-npx pactwork validate
-```
-
-Options:
-- `--fix` — Auto-fix by regenerating handlers
-- `--ci` — CI mode with strict exit codes
-- `--format <type>` — Output format: `console`, `json`, `markdown`, `github`
-
-### `pactwork watch`
-
-Watch spec for changes and regenerate handlers automatically.
-
-```bash
-npx pactwork watch
-```
-
-Options:
-- `--validate` — Validate after each regeneration
-- `--debounce <ms>` — Debounce delay (default: 300ms)
-
-### `pactwork diff`
-
-Show differences between spec and handlers.
-
-```bash
-npx pactwork diff
-```
-
-### `pactwork can-i-deploy`
-
-CI gate for deployment safety. Returns exit code 0 if safe, 1 if not.
-
-```bash
-npx pactwork can-i-deploy
-```
-
-Options:
-- `--ci` — CI mode (minimal output, exit codes only)
-
----
-
-## Configuration
-
-Create `pactwork.config.ts` (or `.js`, `.json`):
-
-```typescript
-import { defineConfig } from 'pactwork'
-
-export default defineConfig({
-  spec: {
-    path: './api/openapi.yaml',
-  },
-  generate: {
-    output: './src/mocks',
-    typescript: true,
-  },
-})
-```
-
-### Configuration Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `spec.path` | `string` | — | Path to OpenAPI spec (required) |
-| `generate.output` | `string` | `./src/mocks` | Output directory |
-| `generate.typescript` | `boolean` | `true` | Generate TypeScript |
-| `generate.baseUrl` | `string` | — | Override base URL from spec |
 
 ---
 
 ## CI Integration
 
-### GitHub Actions
+Add to your pipeline:
 
 ```yaml
-name: API Contract Validation
+- run: npx pactwork validate --ci
+- run: npx pactwork can-i-deploy
+```
 
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Safe — handlers match spec |
+| `1` | Drift detected |
+| `2` | Warnings as errors |
+
+### GitHub Actions Example
+
+```yaml
+name: Contract Check
 on: [push, pull_request]
-
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -187,127 +124,70 @@ jobs:
           node-version: '20'
       - run: npm ci
       - run: npx pactwork validate --ci
-      - run: npx pactwork can-i-deploy --ci
 ```
 
-### Exit Codes
+---
 
-| Code | Meaning |
-|------|---------|
-| `0` | Success — handlers match spec |
-| `1` | Validation failed — drift detected |
-| `2` | Warnings treated as errors |
-| `10` | Unexpected error |
+## Configuration
+
+Create `pactwork.config.ts`:
+
+```typescript
+import { defineConfig } from 'pactwork'
+
+export default defineConfig({
+  spec: { path: './api/openapi.yaml' },
+  generate: { output: './src/mocks', typescript: true },
+})
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `spec.path` | — | Path to OpenAPI spec |
+| `generate.output` | `./src/mocks` | Where to put handlers |
+| `generate.typescript` | `true` | Generate .ts files |
 
 ---
 
 ## Using Generated Handlers
 
-### Browser (Development)
+**Browser:**
 
 ```typescript
-// src/mocks/browser.ts
 import { setupWorker } from 'msw/browser'
-import { handlers } from './handlers'
-
+import { handlers } from './mocks/handlers'
 export const worker = setupWorker(...handlers)
 ```
 
-```typescript
-// src/main.ts
-async function enableMocking() {
-  if (process.env.NODE_ENV !== 'development') return
-
-  const { worker } = await import('./mocks/browser')
-  return worker.start()
-}
-
-enableMocking().then(() => {
-  // Start your app
-})
-```
-
-### Node (Testing)
+**Node/Tests:**
 
 ```typescript
-// src/mocks/node.ts
 import { setupServer } from 'msw/node'
-import { handlers } from './handlers'
-
+import { handlers } from './mocks/handlers'
 export const server = setupServer(...handlers)
 ```
-
-```typescript
-// test/setup.ts
-import { server } from '../src/mocks/node'
-
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
-```
-
----
-
-## Comparison
-
-| Feature | msw-auto-mock | Pactwork |
-|---------|---------------|----------|
-| Generate handlers from spec | Yes | Yes |
-| Drift detection | No | **Yes** |
-| CI validation gate | No | **Yes** |
-| Watch mode | No | **Yes** |
-| Multiple output formats | No | **Yes** |
-| Contract testing (planned) | No | **Yes** |
-
----
-
-## Roadmap
-
-- [x] Generate MSW handlers from OpenAPI
-- [x] Validate handlers match spec
-- [x] Watch mode with auto-regeneration
-- [x] CI integration (`can-i-deploy`)
-- [ ] GitHub Action
-- [ ] TypeScript type generation
-- [ ] Contract recording
-- [ ] Contract verification
-- [ ] Breaking change detection
 
 ---
 
 ## Requirements
 
 - Node.js 18+
-- MSW 2.x (peer dependency)
+- MSW 2.x
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) first.
-
 ```bash
-# Clone the repo
 git clone https://github.com/adrozdenko/pactwork.git
-
-# Install dependencies
 npm install
-
-# Run tests
 npm test
-
-# Build
-npm run build
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
 ## License
 
 MIT © [adrozdenko](https://github.com/adrozdenko)
-
----
-
-<p align="center">
-  <sub>Built with care for frontend teams who are tired of mock drift.</sub>
-</p>
