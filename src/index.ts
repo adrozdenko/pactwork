@@ -19,3 +19,7 @@ export type { Contract, Interaction } from './core/contracts/types.js'
 
 export { loadConfig, defineConfig } from './core/config/index.js'
 export type { PactworkConfig } from './core/config/types.js'
+
+// Runtime utilities for transforming handlers at runtime
+// Also available via 'pactwork/runtime' for tree-shaking
+export * from './runtime/index.js'

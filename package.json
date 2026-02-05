@@ -12,6 +12,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/runtime/index.js",
+      "types": "./dist/runtime/index.d.ts"
     }
   },
   "files": [
@@ -68,6 +72,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.17.12",
     "eslint": "^9.0.0",
+    "msw": "^2.12.8",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.0.0",
