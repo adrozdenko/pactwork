@@ -82,13 +82,14 @@ async function createNetworkError(options: NetworkErrorOptions): Promise<Respons
       // After delay, throw timeout error
       throw new Error(options.message ?? 'Request timeout');
 
-    case 'abort':
+    case 'abort': {
       // Simulate an aborted request
       const abortError = new DOMException(
         options.message ?? 'The operation was aborted.',
         'AbortError'
       );
       throw abortError;
+    }
 
     case 'network-error':
       // Simulate a network failure
