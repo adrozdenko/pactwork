@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+
+  path_instructions:
+    - path: "src/**/*.ts"
+      instructions: |
+        This is a TypeScript library (contract-first API simulation framework).
+        Review for:
+        - Proper TypeScript types (no `any`)
+        - ESM module patterns (this is "type": "module")
+        - Error handling completeness
+        - OpenAPI/Swagger contract compliance where relevant
+
+    - path: "src/**/*.test.ts"
+      instructions: |
+        Tests use Vitest. Review for:
+        - Comprehensive edge case coverage
+        - Proper assertion patterns
+        - Mock cleanup and isolation
+
+    - path: "action/**"
+      instructions: |
+        GitHub Action code. Review for:
+        - Input/output validation
+        - Proper error messaging for CI contexts
+
+chat:
+  auto_reply: true

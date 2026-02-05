@@ -1,19 +1,28 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander'
+import { createRequire } from 'node:module'
 import { initCommand } from './commands/init.js'
 import { generateCommand } from './commands/generate.js'
 import { validateCommand } from './commands/validate.js'
 import { watchCommand } from './commands/watch.js'
 import { diffCommand } from './commands/diff.js'
 import { canIDeployCommand } from './commands/can-i-deploy.js'
+import { typesCommand } from './commands/types.js'
+import { breakingCommand } from './commands/breaking.js'
+import { recordCommand } from './commands/record.js'
+import { verifyCommand } from './commands/verify.js'
+import { scenariosCommand } from './commands/scenarios.js'
+
+const require = createRequire(import.meta.url)
+const pkg = require('../../package.json') as { version: string }
 
 const program = new Command()
 
 program
   .name('pactwork')
   .description('Contract-first API simulation framework - Mocks you can trust')
-  .version('0.0.1')
+  .version(pkg.version)
 
 program
   .command('init')
@@ -38,6 +47,8 @@ program
   .option('--static', 'Generate static (non-random) data')
   .option('--force', 'Overwrite without confirmation')
   .option('--dry-run', 'Show what would be generated')
+  .option('--skip-validation', 'Skip OpenAPI spec validation (for specs with minor issues)')
+  .option('--with-scenarios', 'Generate scenario catalog for error/edge case testing')
   .action(generateCommand)
 
 program
@@ -50,6 +61,7 @@ program
   .option('--format <type>', 'Output format (console, json, markdown, github)', 'console')
   .option('--output <path>', 'Output file for reports')
   .option('--fail-on-warning', 'Treat warnings as errors')
+  .option('--skip-validation', 'Skip OpenAPI spec validation (for specs with minor issues)')
   .action(validateCommand)
 
 program
@@ -67,6 +79,7 @@ program
   .option('--from <version>', 'Compare from version')
   .option('--to <version>', 'Compare to version')
   .option('--format <type>', 'Output format', 'console')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
   .action(diffCommand)
 
 program
@@ -75,6 +88,58 @@ program
   .option('--version <ver>', 'Version to check')
   .option('--environment <env>', 'Target environment')
   .option('--ci', 'CI mode (exit codes only)')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
   .action(canIDeployCommand)
+
+program
+  .command('types')
+  .description('Generate TypeScript types from OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--output <dir>', 'Output directory')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .option('--no-requests', 'Skip request body types')
+  .option('--no-responses', 'Skip response types')
+  .option('--no-params', 'Skip parameter types')
+  .action(typesCommand)
+
+program
+  .command('breaking')
+  .description('Detect breaking changes between two API versions')
+  .requiredOption('--old <path>', 'Path to old OpenAPI spec')
+  .requiredOption('--new <path>', 'Path to new OpenAPI spec')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .option('--format <type>', 'Output format (console, json)', 'console')
+  .option('--ci', 'CI mode (exit codes only)')
+  .action(breakingCommand)
+
+program
+  .command('record')
+  .description('Record a contract from OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--consumer <name>', 'Consumer name')
+  .option('--provider <name>', 'Provider name')
+  .option('--output <dir>', 'Output directory for contracts', '.pactwork')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .action(recordCommand)
+
+program
+  .command('verify')
+  .description('Verify contracts against OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--contract <dir>', 'Contract directory', '.pactwork')
+  .option('--format <type>', 'Output format (console, json)', 'console')
+  .option('--ci', 'CI mode (exit codes only)')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .action(verifyCommand)
+
+program
+  .command('scenarios')
+  .description('List and analyze scenarios from OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--list', 'List all scenarios (default)')
+  .option('--coverage', 'Show scenario coverage statistics')
+  .option('--format <type>', 'Output format (console, json)', 'console')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .action(scenariosCommand)
 
 program.parse()

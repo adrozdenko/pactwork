@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import fs from 'fs-extra'
 import type { ValidationResult } from '../validator/types.js'
-import type { ReporterOptions, ReportFormat } from './types.js'
+import type { ReporterOptions } from './types.js'
 
 export type { ReportFormat, ReporterOptions } from './types.js'
 
@@ -97,11 +97,22 @@ function reportToJson(result: ValidationResult, output?: string): void {
   }
 }
 
+/**
+ * Escape special characters for GitHub Actions annotation format.
+ * Must escape % first to avoid double-encoding.
+ */
+function escapeGitHubAnnotation(str: string): string {
+  return str
+    .replace(/%/g, '%25')
+    .replace(/\r/g, '%0D')
+    .replace(/\n/g, '%0A')
+}
+
 function reportToGitHub(result: ValidationResult): void {
   // GitHub Actions annotation format
   for (const item of result.drift) {
     const level = item.severity === 'error' ? 'error' : 'warning'
-    console.log(`::${level}::${item.details}`)
+    console.log(`::${level}::${escapeGitHubAnnotation(item.details)}`)
   }
 
   // Summary
@@ -109,7 +120,7 @@ function reportToGitHub(result: ValidationResult): void {
     console.log('::notice::All handlers match specification')
   } else {
     const errorCount = result.drift.filter(d => d.severity === 'error').length
-    console.log(`::error::Validation failed with ${errorCount} error(s)`)
+    console.log(`::error::Validation failed with ${escapeGitHubAnnotation(`Validation failed with ${errorCount} error(s)`)}`)
   }
 }
 

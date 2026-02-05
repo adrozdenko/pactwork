@@ -1,7 +1,12 @@
 import chalk from 'chalk'
 import ora from 'ora'
+import fs from 'fs-extra'
+import path from 'path'
 import { loadConfig } from '../../core/config/index.js'
 import { generateHandlers } from '../../core/generator/index.js'
+import { generateScenariosWithCode } from '../../core/scenarios/index.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { handleCommandError } from '../utils.js'
 
 interface GenerateOptions {
   spec?: string
@@ -13,6 +18,8 @@ interface GenerateOptions {
   static?: boolean
   force?: boolean
   dryRun?: boolean
+  skipValidation?: boolean
+  withScenarios?: boolean
 }
 
 export async function generateCommand(options: GenerateOptions): Promise<void> {
@@ -24,13 +31,13 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
 
     // Merge CLI options with config
     const specPath = options.spec ?? config?.spec?.path
-    const outputDir = options.output ?? config?.generate?.output ?? './src/mocks'
+    const outputDir = options.output ?? config?.generate?.output ?? DEFAULTS.OUTPUT_DIR
     const typescript = options.typescript ?? config?.generate?.typescript ?? true
 
     if (!specPath) {
       spinner.fail('No OpenAPI spec specified')
       console.log(chalk.dim('Use --spec <path> or run pactwork init first'))
-      process.exit(1)
+      process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
     spinner.text = `Parsing OpenAPI spec: ${specPath}`
@@ -61,23 +68,47 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
       includes,
       excludes,
       static: options.static,
+      skipValidation: options.skipValidation,
     })
 
     spinner.succeed(`Generated ${result.handlers.length} handlers`)
+
+    // Generate scenarios if requested
+    let scenariosGenerated = false
+    const ext = typescript ? 'ts' : 'js'
+    if (options.withScenarios) {
+      spinner.start('Generating scenario catalog...')
+
+      // Reuse the parsed spec from generateHandlers to avoid double parsing
+      const scenarioResult = generateScenariosWithCode(result.spec)
+      const scenariosPath = path.join(outputDir, `scenarios.${ext}`)
+
+      await fs.writeFile(scenariosPath, scenarioResult.code)
+      scenariosGenerated = true
+
+      spinner.succeed(`Generated ${scenarioResult.catalog.summary.totalScenarios} scenarios`)
+    }
 
     console.log('')
     console.log(chalk.bold('Generated files:'))
     console.log(chalk.dim('  Output:'), result.outputDir)
     console.log(chalk.dim('  Handlers:'), result.handlers.length)
+    if (scenariosGenerated) {
+      console.log(chalk.dim('  Scenarios:'), `scenarios.${ext}`)
+    }
 
     console.log('')
     console.log(chalk.bold('Next steps:'))
     console.log(chalk.dim('  1.'), 'Import handlers in your test setup or browser entry')
-    console.log(chalk.dim('  2.'), 'Run', chalk.cyan('pactwork validate'), 'to verify handlers match spec')
+    if (scenariosGenerated) {
+      console.log(chalk.dim('  2.'), 'Import scenarios for error state testing')
+      console.log(chalk.dim('  3.'), 'Run', chalk.cyan('pactwork validate'), 'to verify handlers match spec')
+    } else {
+      console.log(chalk.dim('  2.'), 'Run', chalk.cyan('pactwork validate'), 'to verify handlers match spec')
+      console.log(chalk.dim('  Tip:'), 'Use', chalk.cyan('--with-scenarios'), 'to generate error/edge case scenarios')
+    }
 
   } catch (error) {
-    spinner.fail('Failed to generate handlers')
-    console.error(chalk.red(error instanceof Error ? error.message : String(error)))
-    process.exit(1)
+    handleCommandError(spinner, 'Failed to generate handlers', error, EXIT_CODES.EXCEPTION)
   }
 }

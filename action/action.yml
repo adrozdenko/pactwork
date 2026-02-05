@@ -1,0 +1,133 @@
+name: 'Pactwork'
+description: 'Validate MSW handlers match your OpenAPI spec. Catch mock drift before it breaks production.'
+author: 'adrozdenko'
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  command:
+    description: 'Command to run: validate, generate, can-i-deploy, diff'
+    required: false
+    default: 'validate'
+  spec:
+    description: 'Path to OpenAPI specification'
+    required: false
+  handlers:
+    description: 'Path to handlers directory'
+    required: false
+  format:
+    description: 'Output format: console, json, markdown, github'
+    required: false
+    default: 'github'
+  fail-on-warning:
+    description: 'Treat warnings as errors'
+    required: false
+    default: 'false'
+  fix:
+    description: 'Auto-fix by regenerating handlers (validate only)'
+    required: false
+    default: 'false'
+  working-directory:
+    description: 'Working directory for the command'
+    required: false
+    default: '.'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+
+outputs:
+  valid:
+    description: 'Whether validation passed (true/false)'
+    value: ${{ steps.run.outputs.valid }}
+  drift-count:
+    description: 'Number of drift issues found'
+    value: ${{ steps.run.outputs.drift_count }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Pactwork
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm install -g pactwork
+
+    - name: Run Pactwork
+      id: run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_SPEC: ${{ inputs.spec }}
+        INPUT_HANDLERS: ${{ inputs.handlers }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_FAIL_ON_WARNING: ${{ inputs.fail-on-warning }}
+        INPUT_FIX: ${{ inputs.fix }}
+      run: |
+        # Validate command against allowed list
+        case "${INPUT_COMMAND}" in
+          validate|generate|can-i-deploy|diff)
+            ;;
+          *)
+            echo "::error::Invalid command: ${INPUT_COMMAND}. Allowed: validate, generate, can-i-deploy, diff"
+            exit 1
+            ;;
+        esac
+
+        # Build command
+        CMD="pactwork ${INPUT_COMMAND}"
+
+        # Add options
+        if [ -n "${INPUT_SPEC}" ]; then
+          CMD="$CMD --spec ${INPUT_SPEC}"
+        fi
+
+        if [ -n "${INPUT_HANDLERS}" ]; then
+          CMD="$CMD --handlers ${INPUT_HANDLERS}"
+        fi
+
+        if [ "${INPUT_COMMAND}" = "validate" ] || [ "${INPUT_COMMAND}" = "diff" ]; then
+          CMD="$CMD --format ${INPUT_FORMAT}"
+        fi
+
+        if [ "${INPUT_FAIL_ON_WARNING}" = "true" ]; then
+          CMD="$CMD --fail-on-warning"
+        fi
+
+        if [ "${INPUT_FIX}" = "true" ] && [ "${INPUT_COMMAND}" = "validate" ]; then
+          CMD="$CMD --fix"
+        fi
+
+        # Always add --ci flag for CI environment
+        CMD="$CMD --ci"
+
+        echo "Running: $CMD"
+
+        # Run and capture output + exit code
+        set +e
+        OUTPUT=$($CMD 2>&1)
+        EXIT_CODE=$?
+        set -e
+
+        echo "${OUTPUT}"
+
+        # Set outputs
+        if [ $EXIT_CODE -eq 0 ]; then
+          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "drift_count=0" >> $GITHUB_OUTPUT
+        else
+          echo "valid=false" >> $GITHUB_OUTPUT
+          # Parse actual drift count from output
+          DRIFT_COUNT=$(echo "${OUTPUT}" | grep -oP '\d+(?= error\(s\))' || echo "unknown")
+          echo "drift_count=${DRIFT_COUNT}" >> $GITHUB_OUTPUT
+        fi
+
+        # Exit with original code
+        exit $EXIT_CODE

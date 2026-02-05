@@ -15,6 +15,10 @@ export interface GeneratorOptions {
   maxArrayLength?: number
   /** Generate static (non-random) data */
   static?: boolean
+  /** Skip OpenAPI spec validation (for specs with minor issues) */
+  skipValidation?: boolean
+  /** Enable verbose logging (surfaces fallback behavior) */
+  verbose?: boolean
   /** AI configuration */
   ai?: AIConfig
 }
@@ -37,6 +41,8 @@ export interface GeneratorResult {
   handlers: HandlerInfo[]
   /** Hash of the spec file */
   specHash: string
+  /** Parsed spec (for reuse, avoids double parsing) */
+  spec: import('../parser/types.js').ParsedSpec
 }
 
 export interface HandlerInfo {

@@ -1,20 +1,28 @@
 import fs from 'fs-extra'
 import { glob } from 'glob'
-import { parseSpec } from '../parser/index.js'
+import { parseSpec, parseSpecFast } from '../parser/index.js'
 import type { Endpoint } from '../parser/types.js'
 import type { ValidationResult, DriftItem, Suggestion, HandlerAnalysis } from './types.js'
 
 export type { ValidationResult, DriftItem, Suggestion } from './types.js'
+
+export interface ValidateOptions {
+  /** Skip OpenAPI spec validation */
+  skipValidation?: boolean
+}
 
 /**
  * Validate that handlers match the OpenAPI specification
  */
 export async function validateHandlers(
   specPath: string,
-  handlersDir: string
+  handlersDir: string,
+  options: ValidateOptions = {}
 ): Promise<ValidationResult> {
-  // Parse the spec
-  const spec = await parseSpec(specPath)
+  // Parse the spec (use fast parsing if skipValidation is true)
+  const spec = options.skipValidation
+    ? await parseSpecFast(specPath)
+    : await parseSpec(specPath)
 
   // Analyze existing handlers
   const handlers = await analyzeHandlers(handlersDir)
@@ -62,7 +70,10 @@ export async function validateHandlers(
 }
 
 /**
- * Analyze handler files to extract endpoint information
+ * Analyze handler files in a directory to extract endpoint information.
+ * Recursively scans for .ts and .js files and extracts MSW handler patterns.
+ * @param handlersDir - Directory containing MSW handlers
+ * @returns Array of all handler definitions found
  */
 async function analyzeHandlers(handlersDir: string): Promise<HandlerAnalysis[]> {
   const handlers: HandlerAnalysis[] = []
@@ -88,19 +99,34 @@ async function analyzeHandlers(handlersDir: string): Promise<HandlerAnalysis[]> 
 }
 
 /**
- * Extract handler definitions from file content using regex
+ * Extract MSW handler definitions from file content using regex patterns.
+ * Parses http.get(), http.post(), etc. calls and extracts path information.
+ * Handles template literals (${baseURL}/path) and full URLs.
+ * @param content - File content to parse
+ * @param file - File path for reference in results
+ * @returns Array of extracted handler definitions
  */
 function extractHandlersFromFile(content: string, file: string): HandlerAnalysis[] {
   const handlers: HandlerAnalysis[] = []
 
   // Match MSW http.* handlers
-  // Pattern: http.get('/path', ...) or http.get('http://base/path', ...)
-  const httpPattern = /http\.(get|post|put|patch|delete|head|options)\s*\(\s*['"`]([^'"`]+)['"`]/gi
+  // Patterns:
+  //   http.get('/path', ...)
+  //   http.get(`${baseURL}/path`, ...)
+  //   http.get('http://base/path', ...)
+  const httpPattern = /http\.(get|post|put|patch|delete|head|options)\s*\(\s*[`'"]([^`'"]+)[`'"]/gi
 
   let match: RegExpExecArray | null
   while ((match = httpPattern.exec(content)) !== null) {
     const method = match[1].toLowerCase()
     let urlPath = match[2]
+
+    // Strip template literal variables like ${baseURL}, ${BASE_URL}, etc.
+    urlPath = urlPath.replace(/\$\{[^}]+\}/g, '')
+
+    // Convert MSW path params :id to OpenAPI style {id} for comparison
+    // (we'll handle this in pathsMatch, but normalize here too)
+    urlPath = urlPath.replace(/^\/+/, '/') // Ensure single leading slash
 
     // Extract path from full URL if needed
     try {
@@ -108,6 +134,11 @@ function extractHandlersFromFile(content: string, file: string): HandlerAnalysis
       urlPath = url.pathname
     } catch {
       // Not a full URL, use as-is
+    }
+
+    // Skip empty paths
+    if (!urlPath) {
+      continue
     }
 
     handlers.push({
@@ -121,7 +152,11 @@ function extractHandlersFromFile(content: string, file: string): HandlerAnalysis
 }
 
 /**
- * Find a handler that matches an endpoint
+ * Find a handler that matches an endpoint by method and path.
+ * Uses flexible path matching to handle both OpenAPI {param} and MSW :param styles.
+ * @param handlers - Array of analyzed handlers from the codebase
+ * @param endpoint - The OpenAPI endpoint to find a handler for
+ * @returns The matching handler, or undefined if not found
  */
 function findHandler(handlers: HandlerAnalysis[], endpoint: Endpoint): HandlerAnalysis | undefined {
   return handlers.find(h => {
@@ -136,7 +171,11 @@ function findHandler(handlers: HandlerAnalysis[], endpoint: Endpoint): HandlerAn
 }
 
 /**
- * Find an endpoint that matches a handler
+ * Find an endpoint that matches a handler by method and path.
+ * Inverse of findHandler - checks if a handler has a corresponding spec endpoint.
+ * @param endpoints - Array of endpoints from the OpenAPI spec
+ * @param handler - The handler to find an endpoint for
+ * @returns The matching endpoint, or undefined if handler is extra
  */
 function findEndpoint(endpoints: Endpoint[], handler: HandlerAnalysis): Endpoint | undefined {
   return endpoints.find(e => {
@@ -149,13 +188,18 @@ function findEndpoint(endpoints: Endpoint[], handler: HandlerAnalysis): Endpoint
 }
 
 /**
- * Check if two paths match, handling path parameters
+ * Check if two paths match, handling different path parameter syntaxes.
+ * Supports OpenAPI style {id}, MSW style :id, and exact matches.
+ * @param handlerPath - Path from the MSW handler (e.g., "/users/:id")
+ * @param specPath - Path from OpenAPI spec (e.g., "/users/{id}")
+ * @returns true if paths match semantically
  */
 function pathsMatch(handlerPath: string, specPath: string): boolean {
-  // Convert OpenAPI path params {id} to MSW/regex style :id or *
-  const specPattern = specPath
-    .replace(/\{([^}]+)\}/g, '([^/]+)')  // {id} -> ([^/]+)
-    .replace(/\//g, '\\/')               // Escape slashes
+  // Replace {param} with placeholder, escape remaining metacharacters, restore placeholders
+  const PLACEHOLDER = '___PARAM___'
+  const withPlaceholders = specPath.replace(/\{[^}]+\}/g, PLACEHOLDER)
+  const escaped = withPlaceholders.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const specPattern = escaped.replace(new RegExp(PLACEHOLDER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '([^/]+)')
 
   const regex = new RegExp(`^${specPattern}$`)
 
@@ -166,7 +210,10 @@ function pathsMatch(handlerPath: string, specPath: string): boolean {
 }
 
 /**
- * Generate helpful suggestions based on drift
+ * Generate actionable suggestions based on detected drift.
+ * Provides commands and guidance to fix missing or extra handlers.
+ * @param drift - Array of drift items (missing, extra, or mismatched)
+ * @returns Array of suggestions with messages and optional commands
  */
 function generateSuggestions(drift: DriftItem[]): Suggestion[] {
   const suggestions: Suggestion[] = []
