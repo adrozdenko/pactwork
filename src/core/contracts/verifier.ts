@@ -120,10 +120,11 @@ function findEndpoint(
 }
 
 function pathMatches(specPath: string, actualPath: string): boolean {
-  // Convert spec path /users/{id} to regex /users/[^/]+
-  const pattern = specPath
-    .replace(/\{[^}]+\}/g, '[^/]+')
-    .replace(/\//g, '\\/')
+  // Replace {param} with placeholder, escape remaining metacharacters, restore placeholders
+  const PLACEHOLDER = '___PARAM___'
+  const withPlaceholders = specPath.replace(/\{[^}]+\}/g, PLACEHOLDER)
+  const escaped = withPlaceholders.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const pattern = escaped.replace(new RegExp(PLACEHOLDER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '[^/]+')
 
   const regex = new RegExp(`^${pattern}$`)
   return regex.test(actualPath)

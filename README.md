@@ -31,7 +31,7 @@
 
 Pactwork gives you a deterministic workflow to keep mocks aligned with the OpenAPI spec:
 
-```
+```text
 validate → generate → commit
 ```
 
@@ -299,7 +299,7 @@ export const server = setupServer(...handlers)
 
 ## How It Works
 
-```
+```text
 OpenAPI Spec → Pactwork → MSW Handlers
      ↓                         ↓
   (source of truth)    (generated artifact)

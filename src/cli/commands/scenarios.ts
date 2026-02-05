@@ -8,7 +8,6 @@ import { handleCommandError } from '../utils.js'
 
 interface ScenariosOptions {
   spec?: string
-  list?: boolean
   coverage?: boolean
   format?: 'console' | 'json'
   skipValidation?: boolean
@@ -71,8 +70,8 @@ export async function scenariosCommand(options: ScenariosOptions): Promise<void>
       return
     }
 
-    // Default: list all scenarios
-    if (options.list || (!options.coverage)) {
+    // Default: list all scenarios (always show unless coverage was already displayed)
+    if (!options.coverage) {
       console.log(formatScenariosList(catalog))
     }
 

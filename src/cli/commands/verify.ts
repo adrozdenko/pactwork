@@ -3,8 +3,8 @@ import ora from 'ora'
 import { loadConfig } from '../../core/config/index.js'
 import { parseSpec, parseSpecFast } from '../../core/parser/index.js'
 import { ContractStore } from '../../core/contracts/index.js'
-import { verifyContract, formatVerificationResult } from '../../core/contracts/verifier.js'
-import { EXIT_CODES } from '../../constants.js'
+import { verifyContract, formatVerificationResult, type VerificationResult } from '../../core/contracts/verifier.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 
 interface VerifyOptions {
@@ -38,7 +38,7 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
 
     // Load contracts
     spinner.text = 'Loading contracts...'
-    const store = new ContractStore(options.contract || '.pactwork')
+    const store = new ContractStore(options.contract || DEFAULTS.CONTRACTS_DIR)
     const contractSummaries = await store.list()
 
     if (contractSummaries.length === 0) {
@@ -49,7 +49,7 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
 
     // Verify each contract
     let allPassed = true
-    const results = []
+    const results: VerificationResult[] = []
 
     for (const summary of contractSummaries) {
       spinner.text = `Verifying ${summary.consumer} → ${summary.provider}...`

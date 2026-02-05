@@ -39,10 +39,11 @@ export async function generateHandlers(options: GeneratorOptions): Promise<Gener
     await execFileAsync('npx', ['msw-auto-mock', specPath, ...args], {
       cwd: process.cwd(),
     })
-  } catch {
+  } catch (error) {
     // msw-auto-mock might not be installed, generate basic handlers instead
     if (options.verbose) {
-      console.log(chalk.dim('[Generator] msw-auto-mock not available, using basic handler generator'))
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      console.log(chalk.dim(`[Generator] msw-auto-mock not available (${errorMsg}), using basic handler generator`))
     }
     await generateBasicHandlers(spec, options)
   }
@@ -61,6 +62,7 @@ export async function generateHandlers(options: GeneratorOptions): Promise<Gener
     outputDir,
     handlers,
     specHash,
+    spec,
   }
 }
 

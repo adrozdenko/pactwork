@@ -79,7 +79,7 @@ export async function watchCommand(options: WatchOptions): Promise<void> {
     })
 
     watcher.on('error', (error) => {
-      console.error(chalk.red('Watch error:'), error)
+      console.error(chalk.red('Watch error:'), formatError(error))
     })
 
     // Initial generation

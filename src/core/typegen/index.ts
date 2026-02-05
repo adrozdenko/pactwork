@@ -88,7 +88,7 @@ export function generateTypes(spec: ParsedSpec, options: TypeGenOptions = {}): T
 
     // Request body
     if (includeRequestTypes && endpoint.requestBody) {
-      const content = endpoint.requestBody.content['application/json']
+      const content = endpoint.requestBody?.content?.['application/json']
       if (content?.schema) {
         const typeName = `${baseName}Request`
         const typeCode = schemaToType(content.schema, spec.schemas)
@@ -104,10 +104,14 @@ export function generateTypes(spec: ParsedSpec, options: TypeGenOptions = {}): T
 
     // Response types
     if (includeResponseTypes) {
-      for (const [status, response] of Object.entries(endpoint.responses)) {
+      const responseEntries = Object.entries(endpoint.responses)
+      // Find the first 2xx status to use as the primary (no suffix) response
+      const primaryStatus = responseEntries.find(([s]) => /^2\d{2}$/.test(s))?.[0]
+
+      for (const [status, response] of responseEntries) {
         const content = response.content?.['application/json']
         if (content?.schema) {
-          const statusName = status === '200' ? '' : `_${status}`
+          const statusName = status === primaryStatus ? '' : `_${status}`
           const typeName = `${baseName}Response${statusName}`
           const typeCode = schemaToType(content.schema, spec.schemas)
           if (typeCode.startsWith('{')) {
@@ -215,10 +219,15 @@ function getEndpointTypeName(endpoint: Endpoint): string {
  * Convert string to PascalCase
  */
 function pascalCase(str: string): string {
-  return str
+  const result = str
     .replace(/[-_./{}]/g, ' ')
     .split(' ')
     .filter(Boolean)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
+
+  if (!result) return 'Unknown'
+  // Prefix with _ if starts with a digit (invalid identifier)
+  if (/^\d/.test(result)) return `_${result}`
+  return result
 }

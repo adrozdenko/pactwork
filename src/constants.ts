@@ -34,7 +34,10 @@ export const OPENAPI_SPEC_CANDIDATES = [
   'api/openapi.json',
   'spec/openapi.yaml',
   'spec/openapi.yml',
+  'spec/openapi.json',
   'docs/openapi.yaml',
+  'docs/openapi.yml',
+  'docs/openapi.json',
   'swagger.yaml',
   'swagger.yml',
   'swagger.json',
@@ -49,5 +52,9 @@ export const DEFAULTS = {
   /** Default debounce delay for watch mode (ms) */
   WATCH_DEBOUNCE_MS: 300,
   /** Default contracts directory */
-  CONTRACTS_DIR: '.pactwork/contracts',
+  CONTRACTS_DIR: '.pactwork',
+  /** Default consumer name */
+  CONSUMER: 'frontend',
+  /** Default provider name */
+  PROVIDER: 'api',
 } as const

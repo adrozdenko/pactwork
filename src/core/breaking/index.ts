@@ -10,6 +10,7 @@ export type BreakingChangeType =
   | 'parameter-removed'
   | 'parameter-required'
   | 'response-removed'
+  | 'schema-removed'
 
 export type BreakingChangeSeverity = 'breaking' | 'warning' | 'info'
 
@@ -82,7 +83,14 @@ export function detectBreakingChanges(
   for (const [name, oldSchema] of Object.entries(oldSpec.schemas)) {
     const newSchema = newSpec.schemas[name]
     if (newSchema) {
-      compareSchemas(oldSchema, newSchema, changes, `#/components/schemas/${name}`, oldSpec.schemas, newSpec.schemas)
+      compareSchemas(oldSchema, newSchema, changes, `#/components/schemas/${name}`, oldSpec.schemas, newSpec.schemas, false)
+    } else {
+      changes.push({
+        type: 'schema-removed',
+        severity: 'breaking',
+        path: `#/components/schemas/${name}`,
+        message: `Schema removed: ${name}`,
+      })
     }
   }
 
@@ -168,7 +176,8 @@ function compareRequestBody(
       changes,
       `${newEndpoint.method.toUpperCase()} ${newEndpoint.path} request`,
       oldSchemas,
-      newSchemas
+      newSchemas,
+      true
     )
   }
 
@@ -218,7 +227,8 @@ function compareResponses(
           changes,
           `${newEndpoint.method.toUpperCase()} ${newEndpoint.path} response ${status}`,
           oldSchemas,
-          newSchemas
+          newSchemas,
+          false
         )
       }
     }
@@ -231,11 +241,16 @@ function compareSchemas(
   changes: BreakingChange[],
   context: string,
   oldSchemas: Record<string, Schema>,
-  newSchemas: Record<string, Schema>
+  newSchemas: Record<string, Schema>,
+  isRequestContext: boolean,
+  visited: Set<string> = new Set()
 ): void {
-  // Resolve refs
-  const resolvedOld = resolveRef(oldSchema, oldSchemas)
-  const resolvedNew = resolveRef(newSchema, newSchemas)
+  // Resolve refs with cycle detection
+  const resolvedOld = resolveRef(oldSchema, oldSchemas, visited)
+  const resolvedNew = resolveRef(newSchema, newSchemas, visited)
+
+  // If either resolved to null due to cycle, bail out
+  if (!resolvedOld || !resolvedNew) return
 
   // Check type changes
   if (resolvedOld.type && resolvedNew.type && resolvedOld.type !== resolvedNew.type) {
@@ -289,10 +304,9 @@ function compareSchemas(
         const isNewField = !resolvedOld.properties[field]
         // For request bodies, new required fields are breaking
         // For responses, they're informational (servers can add fields)
-        const isRequest = context.includes('request')
         changes.push({
           type: 'required-field-added',
-          severity: isRequest ? 'breaking' : 'warning',
+          severity: isRequestContext ? 'breaking' : 'warning',
           path: context,
           field,
           message: isNewField
@@ -306,19 +320,24 @@ function compareSchemas(
     for (const [field, oldProp] of Object.entries(resolvedOld.properties)) {
       const newProp = resolvedNew.properties[field]
       if (newProp) {
-        compareSchemas(oldProp, newProp, changes, `${context}.${field}`, oldSchemas, newSchemas)
+        compareSchemas(oldProp, newProp, changes, `${context}.${field}`, oldSchemas, newSchemas, isRequestContext, visited)
       }
     }
   }
 
   // Check array items
   if (resolvedOld.items && resolvedNew.items) {
-    compareSchemas(resolvedOld.items, resolvedNew.items, changes, `${context}[]`, oldSchemas, newSchemas)
+    compareSchemas(resolvedOld.items, resolvedNew.items, changes, `${context}[]`, oldSchemas, newSchemas, isRequestContext, visited)
   }
 }
 
-function resolveRef(schema: Schema, schemas: Record<string, Schema>): Schema {
+function resolveRef(schema: Schema, schemas: Record<string, Schema>, visited: Set<string> = new Set()): Schema | null {
   if (schema.$ref) {
+    // Cycle detection: if we've already visited this $ref, bail out
+    if (visited.has(schema.$ref)) {
+      return null
+    }
+    visited.add(schema.$ref)
     const refName = schema.$ref.replace('#/components/schemas/', '')
     return schemas[refName] || schema
   }
@@ -357,6 +376,14 @@ export function formatBreakingChanges(result: BreakingChangeResult): string {
     lines.push('WARNINGS:')
     for (const change of grouped.warning) {
       lines.push(`  ⚠ ${change.message}`)
+    }
+    lines.push('')
+  }
+
+  if (grouped.info.length > 0) {
+    lines.push('INFO:')
+    for (const change of grouped.info) {
+      lines.push(`  ℹ ${change.message}`)
     }
     lines.push('')
   }

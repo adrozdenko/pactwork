@@ -4,8 +4,8 @@
  */
 
 export interface Scenario {
-  /** HTTP status code */
-  status: number
+  /** HTTP status code (string to preserve 'default', '2XX', etc.) */
+  status: string
   /** Human-readable description from spec */
   description?: string
   /** Reference to response schema (if defined) */

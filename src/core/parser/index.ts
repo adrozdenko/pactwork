@@ -103,7 +103,7 @@ function extractParameters(
   const allParams = [
     ...(pathItem.parameters ?? []),
     ...(operation.parameters ?? []),
-  ] as OpenAPIV3.ParameterObject[]
+  ].filter(p => !('$ref' in p)) as OpenAPIV3.ParameterObject[]
 
   return allParams.map(p => ({
     name: p.name,

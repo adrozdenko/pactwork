@@ -137,7 +137,7 @@ function extractHandlersFromFile(content: string, file: string): HandlerAnalysis
     }
 
     // Skip empty paths
-    if (!urlPath || urlPath === '/') {
+    if (!urlPath) {
       continue
     }
 
@@ -195,10 +195,11 @@ function findEndpoint(endpoints: Endpoint[], handler: HandlerAnalysis): Endpoint
  * @returns true if paths match semantically
  */
 function pathsMatch(handlerPath: string, specPath: string): boolean {
-  // Convert OpenAPI path params {id} to MSW/regex style :id or *
-  const specPattern = specPath
-    .replace(/\{([^}]+)\}/g, '([^/]+)')  // {id} -> ([^/]+)
-    .replace(/\//g, '\\/')               // Escape slashes
+  // Replace {param} with placeholder, escape remaining metacharacters, restore placeholders
+  const PLACEHOLDER = '___PARAM___'
+  const withPlaceholders = specPath.replace(/\{[^}]+\}/g, PLACEHOLDER)
+  const escaped = withPlaceholders.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const specPattern = escaped.replace(new RegExp(PLACEHOLDER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '([^/]+)')
 
   const regex = new RegExp(`^${specPattern}$`)
 

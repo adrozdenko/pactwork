@@ -55,7 +55,7 @@ export function generateScenarios(
 
       const scenarioKey = getScenarioKey(statusCode)
       scenarios[scenarioKey] = {
-        status: parseInt(statusCode, 10) || 0,
+        status: statusCode,
         description: response.description,
         schemaRef: extractSchemaRef(response),
         isSuccess,
@@ -109,7 +109,7 @@ export function generateScenariosCode(catalog: ScenarioCatalog): string {
 
     for (const [scenarioKey, scenario] of Object.entries(operation.scenarios)) {
       const comment = scenario.description ? ` // ${scenario.description}` : ''
-      lines.push(`    ${scenarioKey}: { status: ${scenario.status} },${comment}`)
+      lines.push(`    ${scenarioKey}: { status: '${scenario.status}' },${comment}`)
     }
 
     lines.push('  },')
@@ -117,8 +117,8 @@ export function generateScenariosCode(catalog: ScenarioCatalog): string {
 
   lines.push('} as const')
   lines.push('')
-  lines.push('export type ScenarioKey = keyof typeof scenarios')
   lines.push('export type OperationId = keyof typeof scenarios')
+  lines.push('export type ScenarioKey<T extends OperationId> = keyof typeof scenarios[T]')
   lines.push('')
   lines.push(`// Summary: ${catalog.summary.totalOperations} operations, ${catalog.summary.totalScenarios} scenarios`)
   lines.push('')
@@ -182,9 +182,10 @@ export function getScenarioCoverage(catalog: ScenarioCatalog): {
 
   for (const operation of Object.values(catalog.operations)) {
     for (const scenario of Object.values(operation.scenarios)) {
-      if (scenario.status >= 200 && scenario.status < 300) success++
-      else if (scenario.status >= 400 && scenario.status < 500) clientError++
-      else if (scenario.status >= 500 && scenario.status < 600) serverError++
+      const code = parseInt(scenario.status, 10)
+      if (code >= 200 && code < 300) success++
+      else if (code >= 400 && code < 500) clientError++
+      else if (code >= 500 && code < 600) serverError++
       else other++
     }
   }
@@ -241,7 +242,9 @@ function getScenarioKey(statusCode: string): string {
 function matchesStatusFilter(statusCode: string, filters: string[]): boolean {
   for (const filter of filters) {
     if (filter === statusCode) return true
+    if (filter === '1xx' && statusCode.startsWith('1')) return true
     if (filter === '2xx' && statusCode.startsWith('2')) return true
+    if (filter === '3xx' && statusCode.startsWith('3')) return true
     if (filter === '4xx' && statusCode.startsWith('4')) return true
     if (filter === '5xx' && statusCode.startsWith('5')) return true
   }

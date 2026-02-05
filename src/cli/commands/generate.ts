@@ -4,7 +4,6 @@ import fs from 'fs-extra'
 import path from 'path'
 import { loadConfig } from '../../core/config/index.js'
 import { generateHandlers } from '../../core/generator/index.js'
-import { parseSpec, parseSpecFast } from '../../core/parser/index.js'
 import { generateScenariosWithCode } from '../../core/scenarios/index.js'
 import { EXIT_CODES, DEFAULTS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
@@ -76,15 +75,12 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
 
     // Generate scenarios if requested
     let scenariosGenerated = false
+    const ext = typescript ? 'ts' : 'js'
     if (options.withScenarios) {
       spinner.start('Generating scenario catalog...')
 
-      const spec = options.skipValidation
-        ? await parseSpecFast(specPath)
-        : await parseSpec(specPath)
-
-      const scenarioResult = generateScenariosWithCode(spec)
-      const ext = typescript ? 'ts' : 'js'
+      // Reuse the parsed spec from generateHandlers to avoid double parsing
+      const scenarioResult = generateScenariosWithCode(result.spec)
       const scenariosPath = path.join(outputDir, `scenarios.${ext}`)
 
       await fs.writeFile(scenariosPath, scenarioResult.code)
@@ -98,7 +94,7 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     console.log(chalk.dim('  Output:'), result.outputDir)
     console.log(chalk.dim('  Handlers:'), result.handlers.length)
     if (scenariosGenerated) {
-      console.log(chalk.dim('  Scenarios:'), 'scenarios.ts')
+      console.log(chalk.dim('  Scenarios:'), `scenarios.${ext}`)
     }
 
     console.log('')

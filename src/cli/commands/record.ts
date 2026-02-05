@@ -4,7 +4,7 @@ import { loadConfig } from '../../core/config/index.js'
 import { parseSpec, parseSpecFast } from '../../core/parser/index.js'
 import { generateContractFromSpec } from '../../core/contracts/recorder.js'
 import { ContractStore } from '../../core/contracts/index.js'
-import { EXIT_CODES } from '../../constants.js'
+import { EXIT_CODES, DEFAULTS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 
 interface RecordOptions {
@@ -30,8 +30,8 @@ export async function recordCommand(options: RecordOptions): Promise<void> {
       process.exit(EXIT_CODES.VALIDATION_FAILED)
     }
 
-    const consumer = options.consumer || config?.contracts?.consumer || 'frontend'
-    const provider = options.provider || config?.contracts?.provider || 'api'
+    const consumer = options.consumer || config?.contracts?.consumer || DEFAULTS.CONSUMER
+    const provider = options.provider || config?.contracts?.provider || DEFAULTS.PROVIDER
 
     // Parse spec
     spinner.text = 'Parsing OpenAPI spec...'
@@ -47,7 +47,7 @@ export async function recordCommand(options: RecordOptions): Promise<void> {
     })
 
     // Save contract
-    const store = new ContractStore(options.output || '.pactwork')
+    const store = new ContractStore(options.output || DEFAULTS.CONTRACTS_DIR)
     const filepath = await store.save(contract)
 
     spinner.succeed(`Recorded ${contract.interactions.length} interactions`)

@@ -76,11 +76,11 @@ describe('generateScenarios', () => {
 
     const listUsersScenarios = catalog.operations['listUsers'].scenarios
     expect(listUsersScenarios['success']).toBeDefined()
-    expect(listUsersScenarios['success'].status).toBe(200)
+    expect(listUsersScenarios['success'].status).toBe('200')
     expect(listUsersScenarios['unauthorized']).toBeDefined()
-    expect(listUsersScenarios['unauthorized'].status).toBe(401)
+    expect(listUsersScenarios['unauthorized'].status).toBe('401')
     expect(listUsersScenarios['serverError']).toBeDefined()
-    expect(listUsersScenarios['serverError'].status).toBe(500)
+    expect(listUsersScenarios['serverError'].status).toBe('500')
   })
 
   it('should mark success scenarios correctly', () => {
@@ -124,6 +124,56 @@ describe('generateScenarios', () => {
     expect(catalog.summary.byStatus['201']).toBe(1)
     expect(catalog.summary.byStatus['404']).toBe(1)
   })
+
+  it('should handle "default" status code', () => {
+    const specWithDefault: ParsedSpec = {
+      ...mockSpec,
+      endpoints: [
+        {
+          path: '/health',
+          method: 'get',
+          operationId: 'healthCheck',
+          parameters: [],
+          responses: {
+            '200': { description: 'OK' },
+            'default': { description: 'Unexpected error' },
+          },
+        },
+      ],
+    }
+
+    const catalog = generateScenarios(specWithDefault)
+    const scenarios = catalog.operations['healthCheck'].scenarios
+
+    expect(scenarios['default']).toBeDefined()
+    expect(scenarios['default'].status).toBe('default')
+  })
+
+  it('should filter with 1xx and 3xx status ranges', () => {
+    const specWithRedirects: ParsedSpec = {
+      ...mockSpec,
+      endpoints: [
+        {
+          path: '/redirect',
+          method: 'get',
+          operationId: 'redirect',
+          parameters: [],
+          responses: {
+            '301': { description: 'Moved Permanently' },
+            '200': { description: 'OK' },
+          },
+        },
+      ],
+    }
+
+    const catalog = generateScenarios(specWithRedirects, {
+      includeStatuses: ['3xx'],
+    })
+
+    const scenarios = catalog.operations['redirect'].scenarios
+    expect(scenarios['status301']).toBeDefined()
+    expect(Object.keys(scenarios)).toHaveLength(1)
+  })
 })
 
 describe('generateScenariosCode', () => {
@@ -145,21 +195,21 @@ describe('generateScenariosCode', () => {
     expect(code).toContain('createUser:')
   })
 
-  it('should include scenario status codes', () => {
+  it('should include scenario status codes as strings', () => {
     const catalog = generateScenarios(mockSpec)
     const code = generateScenariosCode(catalog)
 
-    expect(code).toContain('success: { status: 200 }')
-    expect(code).toContain('notFound: { status: 404 }')
-    expect(code).toContain('created: { status: 201 }')
+    expect(code).toContain("success: { status: '200' }")
+    expect(code).toContain("notFound: { status: '404' }")
+    expect(code).toContain("created: { status: '201' }")
   })
 
-  it('should export type definitions', () => {
+  it('should export generic ScenarioKey type', () => {
     const catalog = generateScenarios(mockSpec)
     const code = generateScenariosCode(catalog)
 
-    expect(code).toContain('export type ScenarioKey')
     expect(code).toContain('export type OperationId')
+    expect(code).toContain('export type ScenarioKey<T extends OperationId>')
   })
 })
 

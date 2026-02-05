@@ -183,7 +183,7 @@ export const Empty: Story = {
 
 The spec is the neutral contract between frontend and backend. Neither "leads" — both conform to the spec.
 
-```
+```text
 OpenAPI Spec (contract)
        ↓
 Pactwork (generates handlers + scenarios)

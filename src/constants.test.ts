@@ -59,6 +59,14 @@ describe('DEFAULTS', () => {
   })
 
   it('should have CONTRACTS_DIR defined', () => {
-    expect(DEFAULTS.CONTRACTS_DIR).toBe('.pactwork/contracts')
+    expect(DEFAULTS.CONTRACTS_DIR).toBe('.pactwork')
+  })
+
+  it('should have CONSUMER defined', () => {
+    expect(DEFAULTS.CONSUMER).toBe('frontend')
+  })
+
+  it('should have PROVIDER defined', () => {
+    expect(DEFAULTS.PROVIDER).toBe('api')
   })
 })

@@ -32,7 +32,7 @@ npm run dev
 
 ## Project Structure
 
-```
+```text
 pactwork/
 ├── bin/                # CLI entry point
 ├── src/

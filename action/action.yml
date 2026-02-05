@@ -63,28 +63,45 @@ runs:
       id: run
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_SPEC: ${{ inputs.spec }}
+        INPUT_HANDLERS: ${{ inputs.handlers }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_FAIL_ON_WARNING: ${{ inputs.fail-on-warning }}
+        INPUT_FIX: ${{ inputs.fix }}
       run: |
+        # Validate command against allowed list
+        case "${INPUT_COMMAND}" in
+          validate|generate|can-i-deploy|diff)
+            ;;
+          *)
+            echo "::error::Invalid command: ${INPUT_COMMAND}. Allowed: validate, generate, can-i-deploy, diff"
+            exit 1
+            ;;
+        esac
+
         # Build command
-        CMD="pactwork ${{ inputs.command }}"
+        CMD="pactwork ${INPUT_COMMAND}"
 
         # Add options
-        if [ -n "${{ inputs.spec }}" ]; then
-          CMD="$CMD --spec ${{ inputs.spec }}"
+        if [ -n "${INPUT_SPEC}" ]; then
+          CMD="$CMD --spec ${INPUT_SPEC}"
         fi
 
-        if [ -n "${{ inputs.handlers }}" ]; then
-          CMD="$CMD --handlers ${{ inputs.handlers }}"
+        if [ -n "${INPUT_HANDLERS}" ]; then
+          CMD="$CMD --handlers ${INPUT_HANDLERS}"
         fi
 
-        if [ "${{ inputs.command }}" = "validate" ] || [ "${{ inputs.command }}" = "diff" ]; then
-          CMD="$CMD --format ${{ inputs.format }}"
+        if [ "${INPUT_COMMAND}" = "validate" ] || [ "${INPUT_COMMAND}" = "diff" ]; then
+          CMD="$CMD --format ${INPUT_FORMAT}"
         fi
 
-        if [ "${{ inputs.fail-on-warning }}" = "true" ]; then
+        if [ "${INPUT_FAIL_ON_WARNING}" = "true" ]; then
           CMD="$CMD --fail-on-warning"
         fi
 
-        if [ "${{ inputs.fix }}" = "true" ] && [ "${{ inputs.command }}" = "validate" ]; then
+        if [ "${INPUT_FIX}" = "true" ] && [ "${INPUT_COMMAND}" = "validate" ]; then
           CMD="$CMD --fix"
         fi
 
@@ -93,11 +110,13 @@ runs:
 
         echo "Running: $CMD"
 
-        # Run and capture exit code
+        # Run and capture output + exit code
         set +e
-        $CMD
+        OUTPUT=$($CMD 2>&1)
         EXIT_CODE=$?
         set -e
+
+        echo "${OUTPUT}"
 
         # Set outputs
         if [ $EXIT_CODE -eq 0 ]; then
@@ -105,7 +124,9 @@ runs:
           echo "drift_count=0" >> $GITHUB_OUTPUT
         else
           echo "valid=false" >> $GITHUB_OUTPUT
-          echo "drift_count=unknown" >> $GITHUB_OUTPUT
+          # Parse actual drift count from output
+          DRIFT_COUNT=$(echo "${OUTPUT}" | grep -oP '\d+(?= error\(s\))' || echo "unknown")
+          echo "drift_count=${DRIFT_COUNT}" >> $GITHUB_OUTPUT
         fi
 
         # Exit with original code
