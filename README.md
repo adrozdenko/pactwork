@@ -74,6 +74,9 @@ OpenAPI Spec → Pactwork → MSW Handlers + Validation + CI Gate
 | `pactwork generate` | Create MSW handlers from spec |
 | `pactwork validate` | Check handlers match spec |
 | `pactwork types` | Generate TypeScript types from spec |
+| `pactwork breaking` | Detect breaking changes between API versions |
+| `pactwork record` | Record a contract from OpenAPI spec |
+| `pactwork verify` | Verify contracts against spec |
 | `pactwork watch` | Auto-regenerate on spec changes |
 | `pactwork diff` | Show what's different |
 | `pactwork can-i-deploy` | CI gate — exit 0 if safe, 1 if not |
@@ -89,6 +92,15 @@ pactwork validate --fix
 
 # CI mode with strict exit codes
 pactwork validate --ci --format github
+
+# Detect breaking changes between versions
+pactwork breaking --old ./v1/openapi.yaml --new ./v2/openapi.yaml
+
+# Record a contract from your spec
+pactwork record --spec ./openapi.yaml --consumer frontend --provider api
+
+# Verify contracts match the spec
+pactwork verify --spec ./openapi.yaml
 ```
 
 ---

@@ -9,6 +9,9 @@ import { watchCommand } from './commands/watch.js'
 import { diffCommand } from './commands/diff.js'
 import { canIDeployCommand } from './commands/can-i-deploy.js'
 import { typesCommand } from './commands/types.js'
+import { breakingCommand } from './commands/breaking.js'
+import { recordCommand } from './commands/record.js'
+import { verifyCommand } from './commands/verify.js'
 
 const require = createRequire(import.meta.url)
 const pkg = require('../../package.json') as { version: string }
@@ -96,5 +99,35 @@ program
   .option('--no-responses', 'Skip response types')
   .option('--no-params', 'Skip parameter types')
   .action(typesCommand)
+
+program
+  .command('breaking')
+  .description('Detect breaking changes between two API versions')
+  .requiredOption('--old <path>', 'Path to old OpenAPI spec')
+  .requiredOption('--new <path>', 'Path to new OpenAPI spec')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .option('--format <type>', 'Output format (console, json)', 'console')
+  .option('--ci', 'CI mode (exit codes only)')
+  .action(breakingCommand)
+
+program
+  .command('record')
+  .description('Record a contract from OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--consumer <name>', 'Consumer name')
+  .option('--provider <name>', 'Provider name')
+  .option('--output <dir>', 'Output directory for contracts', '.pactwork')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .action(recordCommand)
+
+program
+  .command('verify')
+  .description('Verify contracts against OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--contract <dir>', 'Contract directory', '.pactwork')
+  .option('--format <type>', 'Output format (console, json)', 'console')
+  .option('--ci', 'CI mode (exit codes only)')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .action(verifyCommand)
 
 program.parse()

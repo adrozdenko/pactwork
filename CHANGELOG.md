@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Generate interfaces from OpenAPI schemas
   - Request/response types per endpoint
   - Path and query parameter types
+- **Breaking Change Detection** — New `pactwork breaking` command
+  - Compare two API versions for breaking changes
+  - Detects: removed endpoints, new required parameters, type changes, removed enum values
+  - Severity levels: breaking, warning, info
+  - JSON output for CI integration
+- **Contract Recording** — New `pactwork record` command
+  - Generate Pact-style contracts from OpenAPI spec
+  - Consumer/provider naming for contract identification
+  - Spec hash tracking for change detection
+- **Contract Verification** — New `pactwork verify` command
+  - Verify contracts against current OpenAPI spec
+  - Endpoint existence, parameter, and response validation
+  - Formatted console and JSON output
 - **More Tests** — 43 tests (up from 2)
 
 ## [1.0.0] - 2025-02-05
