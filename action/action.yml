@@ -1,0 +1,112 @@
+name: 'Pactwork'
+description: 'Validate MSW handlers match your OpenAPI spec. Catch mock drift before it breaks production.'
+author: 'adrozdenko'
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  command:
+    description: 'Command to run: validate, generate, can-i-deploy, diff'
+    required: false
+    default: 'validate'
+  spec:
+    description: 'Path to OpenAPI specification'
+    required: false
+  handlers:
+    description: 'Path to handlers directory'
+    required: false
+  format:
+    description: 'Output format: console, json, markdown, github'
+    required: false
+    default: 'github'
+  fail-on-warning:
+    description: 'Treat warnings as errors'
+    required: false
+    default: 'false'
+  fix:
+    description: 'Auto-fix by regenerating handlers (validate only)'
+    required: false
+    default: 'false'
+  working-directory:
+    description: 'Working directory for the command'
+    required: false
+    default: '.'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+
+outputs:
+  valid:
+    description: 'Whether validation passed (true/false)'
+    value: ${{ steps.run.outputs.valid }}
+  drift-count:
+    description: 'Number of drift issues found'
+    value: ${{ steps.run.outputs.drift_count }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Pactwork
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm install -g pactwork
+
+    - name: Run Pactwork
+      id: run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        # Build command
+        CMD="pactwork ${{ inputs.command }}"
+
+        # Add options
+        if [ -n "${{ inputs.spec }}" ]; then
+          CMD="$CMD --spec ${{ inputs.spec }}"
+        fi
+
+        if [ -n "${{ inputs.handlers }}" ]; then
+          CMD="$CMD --handlers ${{ inputs.handlers }}"
+        fi
+
+        if [ "${{ inputs.command }}" = "validate" ] || [ "${{ inputs.command }}" = "diff" ]; then
+          CMD="$CMD --format ${{ inputs.format }}"
+        fi
+
+        if [ "${{ inputs.fail-on-warning }}" = "true" ]; then
+          CMD="$CMD --fail-on-warning"
+        fi
+
+        if [ "${{ inputs.fix }}" = "true" ] && [ "${{ inputs.command }}" = "validate" ]; then
+          CMD="$CMD --fix"
+        fi
+
+        # Always add --ci flag for CI environment
+        CMD="$CMD --ci"
+
+        echo "Running: $CMD"
+
+        # Run and capture exit code
+        set +e
+        $CMD
+        EXIT_CODE=$?
+        set -e
+
+        # Set outputs
+        if [ $EXIT_CODE -eq 0 ]; then
+          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "drift_count=0" >> $GITHUB_OUTPUT
+        else
+          echo "valid=false" >> $GITHUB_OUTPUT
+          echo "drift_count=unknown" >> $GITHUB_OUTPUT
+        fi
+
+        # Exit with original code
+        exit $EXIT_CODE

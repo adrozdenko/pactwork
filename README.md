@@ -94,7 +94,24 @@ pactwork validate --ci --format github
 
 ## CI Integration
 
-Add to your pipeline:
+### GitHub Action (Recommended)
+
+```yaml
+- uses: adrozdenko/pactwork@v1
+```
+
+With options:
+
+```yaml
+- uses: adrozdenko/pactwork@v1
+  with:
+    spec: ./api/openapi.yaml
+    fail-on-warning: true
+```
+
+See [action documentation](./action/README.md) for all options.
+
+### CLI
 
 ```yaml
 - run: npx pactwork validate --ci
@@ -108,23 +125,6 @@ Add to your pipeline:
 | `0` | Safe — handlers match spec |
 | `1` | Drift detected |
 | `2` | Warnings as errors |
-
-### GitHub Actions Example
-
-```yaml
-name: Contract Check
-on: [push, pull_request]
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm ci
-      - run: npx pactwork validate --ci
-```
 
 ---
 
