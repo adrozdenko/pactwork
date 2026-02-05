@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Agentic-First README** — Repositioned documentation for AI agent workflows
+  - "For AI Agents" section with the validate → generate → commit loop
+  - Agent playbooks for common scenarios
+  - Honest "Available Now" vs "Coming Soon" feature status
+- **Product Roadmap** — Published ROADMAP.md with phased approach
+  - Phase 1 (Complete): Handlers, validation, breaking changes, contracts
+  - Phase 2 (Next): Scenario catalog generation from OpenAPI spec
+  - Phase 3 (Planned): Runtime utilities (applyScenario, withLatency)
+  - Phase 4 (Future): Storybook addon integration
+  - Architecture decisions documented
 - **GitHub Action** — Use `adrozdenko/pactwork@v1` in your workflows
 - **TypeScript Type Generation** — New `pactwork types` command
   - Generate interfaces from OpenAPI schemas

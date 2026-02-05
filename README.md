@@ -5,7 +5,7 @@
 <h1 align="center">Pactwork</h1>
 
 <p align="center">
-  <strong>Stop mock drift. Start shipping.</strong>
+  <strong>Agentic API mock management. Your mocks stay in sync automatically.</strong>
 </p>
 
 <p align="center">
@@ -15,133 +15,225 @@
 </p>
 
 <p align="center">
-  <a href="#the-problem">The Problem</a> •
-  <a href="#quick-start">Quick Start</a> •
+  <a href="#for-ai-agents">For AI Agents</a> •
+  <a href="#functional-prototypes-with-storybook">Storybook</a> •
+  <a href="#the-agent-loop">The Agent Loop</a> •
   <a href="#commands">Commands</a> •
-  <a href="#ci-integration">CI Integration</a>
+  <a href="#setup">Setup</a> •
+  <a href="ROADMAP.md">Roadmap</a>
 </p>
 
 ---
 
-## The Problem
+## For AI Agents
 
-Your frontend mocks lie to you.
+**You don't need to understand the API. You need to enforce the contract.**
+
+Pactwork gives you a deterministic workflow to keep mocks aligned with the OpenAPI spec:
 
 ```
-Backend adds field → Mock doesn't have it → Tests pass → Production breaks
+validate → generate → commit
 ```
 
-**Pactwork fixes this.** It generates MSW handlers from your OpenAPI spec and catches drift before it reaches production.
-
-| Before | After |
-|--------|-------|
-| Write mocks by hand | Generate from spec |
-| Mocks drift silently | Drift detected in CI |
-| Bugs found in prod | Bugs found in PR |
+No manual diffing. No guessing response shapes. One loop, always correct.
 
 ---
 
-## Quick Start
+## Why This Exists
 
+Without Pactwork, keeping mocks in sync means:
+- Reading the OpenAPI spec
+- Finding the matching mock handlers
+- Manually updating response shapes
+- Missing edge cases
+
+With Pactwork:
+- Run `pactwork validate` — instant pass/fail signal
+- If it fails, run `pactwork generate` — mocks regenerated
+- Commit the diff — done
+
+**Mocks become build artifacts, not hand-written code.**
+
+---
+
+## Functional Prototypes with Storybook
+
+Pactwork + Storybook = bulletproof UI development.
+
+The generated mocks power **functional prototypes** that behave like production — before integration.
+
+### Available Now
+
+| Feature | Status |
+|---------|--------|
+| Handler generation from spec | ✅ Ready |
+| Drift detection | ✅ Ready |
+| Breaking change detection | ✅ Ready |
+| Contract testing | ✅ Ready |
+
+### Coming Soon
+
+| Feature | Status |
+|---------|--------|
+| Scenario catalog (error states from spec) | 🔜 Phase 2 |
+| Runtime utilities (`applyScenario`, `withLatency`) | 🔮 Phase 3 |
+| Storybook addon | 🔮 Phase 4 |
+
+See [ROADMAP.md](ROADMAP.md) for the full vision.
+
+### Why this matters
+
+Edge cases are **expensive** when found in production:
+- Users encounter the bug first
+- Support tickets pile up
+- Developers context-switch to fix urgent issues
+
+With Pactwork, the foundation is already in place. As we add scenario simulation, you'll be able to:
+- Test every error state before integration
+- Simulate latency and loading states
+- Cover edge cases that are hard to reproduce with real APIs
+
+**The vision:** Ship components that already handle what production will throw at them.
+
+---
+
+## The Agent Loop
+
+Copy this workflow directly:
+
+### 1. Check for drift
 ```bash
-npm install -D pactwork msw
-npx pactwork init --spec ./openapi.yaml
-npx pactwork generate
-npx pactwork validate
+pactwork validate --ci
 ```
+- Exit `0` = mocks match spec, nothing to do
+- Exit `1` = drift detected, proceed to step 2
 
-Done. Your mocks stay in sync.
+### 2. Fix drift
+```bash
+pactwork generate
+```
+Regenerates all handlers from the current spec.
+
+### 3. Verify the fix
+```bash
+pactwork validate --ci
+```
+Should now exit `0`.
+
+### 4. Commit
+Create a PR with the updated handlers. Include:
+- Which endpoints changed
+- Pactwork validation output
 
 ---
 
-## How It Works
+## When to Run
 
-```
-OpenAPI Spec → Pactwork → MSW Handlers + Validation + CI Gate
-```
-
-1. **Generate** — Create MSW handlers from your spec
-2. **Validate** — Check handlers match the spec
-3. **Gate** — Block deploys when mocks drift
+| Trigger | Action |
+|---------|--------|
+| OpenAPI spec changed | Run the agent loop |
+| PR includes spec changes | Validate in CI |
+| Scheduled check | Run validate, alert on drift |
+| Before deploy | Run `can-i-deploy` as gate |
 
 ---
 
 ## Commands
 
-| Command | What it does |
-|---------|--------------|
-| `pactwork init` | Set up Pactwork in your project |
-| `pactwork generate` | Create MSW handlers from spec |
-| `pactwork validate` | Check handlers match spec |
-| `pactwork types` | Generate TypeScript types from spec |
-| `pactwork breaking` | Detect breaking changes between API versions |
-| `pactwork record` | Record a contract from OpenAPI spec |
-| `pactwork verify` | Verify contracts against spec |
-| `pactwork watch` | Auto-regenerate on spec changes |
-| `pactwork diff` | Show what's different |
-| `pactwork can-i-deploy` | CI gate — exit 0 if safe, 1 if not |
+| Command | Purpose | Output |
+|---------|---------|--------|
+| `pactwork validate` | Check if mocks match spec | Exit code + drift report |
+| `pactwork generate` | Create mocks from spec | MSW handler files |
+| `pactwork breaking` | Compare two spec versions | Breaking change report |
+| `pactwork can-i-deploy` | CI deployment gate | Exit code (0 = safe) |
+| `pactwork types` | Generate TypeScript types | Type definition files |
+| `pactwork record` | Create contract from spec | Contract JSON |
+| `pactwork verify` | Check contract against spec | Verification report |
 
-### Common Options
+### Key flags
 
 ```bash
-# Generate from specific spec
-pactwork generate --spec ./api/openapi.yaml --output ./src/mocks
+# CI mode — minimal output, strict exit codes
+pactwork validate --ci
 
-# Validate and auto-fix drift
+# Auto-fix — regenerate when drift found
 pactwork validate --fix
 
-# CI mode with strict exit codes
-pactwork validate --ci --format github
+# Compare API versions
+pactwork breaking --old v1.yaml --new v2.yaml
 
-# Detect breaking changes between versions
-pactwork breaking --old ./v1/openapi.yaml --new ./v2/openapi.yaml
-
-# Record a contract from your spec
-pactwork record --spec ./openapi.yaml --consumer frontend --provider api
-
-# Verify contracts match the spec
-pactwork verify --spec ./openapi.yaml
+# GitHub Actions annotation format
+pactwork validate --format github
 ```
 
 ---
 
-## CI Integration
+## Agent Playbooks
 
-### GitHub Action (Recommended)
+### When the OpenAPI spec changes
 
-```yaml
-- uses: adrozdenko/pactwork@v1
+```bash
+pactwork validate --ci
+if [ $? -ne 0 ]; then
+  pactwork generate
+  pactwork validate --ci  # verify fix
+  # commit changes
+fi
 ```
 
-With options:
+### When validate fails in CI
 
-```yaml
-- uses: adrozdenko/pactwork@v1
-  with:
-    spec: ./api/openapi.yaml
-    fail-on-warning: true
+The spec and mocks are out of sync. Run:
+```bash
+pactwork generate
 ```
+Then commit the regenerated handlers.
 
-See [action documentation](./action/README.md) for all options.
+### When breaking changes are detected
 
-### CLI
-
-```yaml
-- run: npx pactwork validate --ci
-- run: npx pactwork can-i-deploy
+```bash
+pactwork breaking --old main:openapi.yaml --new openapi.yaml
 ```
+Review the report. Breaking changes need explicit approval before merge.
 
-### Exit Codes
+### Before deploying
+
+```bash
+pactwork can-i-deploy
+```
+Exit `0` means safe. Exit `1` means drift exists — fix before deploy.
+
+---
+
+## Exit Codes
+
+Predictable signals for automation:
 
 | Code | Meaning |
 |------|---------|
-| `0` | Safe — handlers match spec |
-| `1` | Drift detected |
-| `2` | Warnings as errors |
+| `0` | Pass — mocks match spec |
+| `1` | Fail — drift or breaking changes |
+| `2` | Fail — warnings treated as errors |
 
 ---
 
-## Configuration
+## Setup
+
+One-time configuration by a human. Then agents take over.
+
+### Install
+
+```bash
+npm install -D pactwork msw
+```
+
+### Initialize
+
+```bash
+npx pactwork init --spec ./openapi.yaml
+```
+
+### Configure (optional)
 
 Create `pactwork.config.ts`:
 
@@ -154,18 +246,32 @@ export default defineConfig({
 })
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `spec.path` | — | Path to OpenAPI spec |
-| `generate.output` | `./src/mocks` | Where to put handlers |
-| `generate.typescript` | `true` | Generate .ts files |
+---
+
+## CI Integration
+
+### GitHub Action
+
+```yaml
+- uses: adrozdenko/pactwork@v1
+  with:
+    spec: ./openapi.yaml
+```
+
+### CLI in CI
+
+```yaml
+- run: npx pactwork validate --ci --format github
+- run: npx pactwork can-i-deploy
+```
 
 ---
 
 ## Using Generated Handlers
 
-**Browser:**
+The generated handlers work with MSW (Mock Service Worker):
 
+**Browser:**
 ```typescript
 import { setupWorker } from 'msw/browser'
 import { handlers } from './mocks/handlers'
@@ -173,7 +279,6 @@ export const worker = setupWorker(...handlers)
 ```
 
 **Node/Tests:**
-
 ```typescript
 import { setupServer } from 'msw/node'
 import { handlers } from './mocks/handlers'
@@ -182,10 +287,27 @@ export const server = setupServer(...handlers)
 
 ---
 
+## How It Works
+
+```
+OpenAPI Spec → Pactwork → MSW Handlers
+     ↓                         ↓
+  (source of truth)    (generated artifact)
+     ↓                         ↓
+     └──── validate ───────────┘
+              ↓
+         drift report
+```
+
+The spec is the source of truth. Handlers are generated, not authored. Validation catches drift. Agents close the loop.
+
+---
+
 ## Requirements
 
 - Node.js 18+
 - MSW 2.x
+- OpenAPI 2.0, 3.0, or 3.1 spec
 
 ---
 
