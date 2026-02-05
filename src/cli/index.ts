@@ -8,6 +8,7 @@ import { validateCommand } from './commands/validate.js'
 import { watchCommand } from './commands/watch.js'
 import { diffCommand } from './commands/diff.js'
 import { canIDeployCommand } from './commands/can-i-deploy.js'
+import { typesCommand } from './commands/types.js'
 
 const require = createRequire(import.meta.url)
 const pkg = require('../../package.json') as { version: string }
@@ -84,5 +85,16 @@ program
   .option('--ci', 'CI mode (exit codes only)')
   .option('--skip-validation', 'Skip OpenAPI spec validation')
   .action(canIDeployCommand)
+
+program
+  .command('types')
+  .description('Generate TypeScript types from OpenAPI spec')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--output <dir>', 'Output directory')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .option('--no-requests', 'Skip request body types')
+  .option('--no-responses', 'Skip response types')
+  .option('--no-params', 'Skip parameter types')
+  .action(typesCommand)
 
 program.parse()
