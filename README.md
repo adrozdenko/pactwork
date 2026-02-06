@@ -71,12 +71,12 @@ The generated mocks power **functional prototypes** that behave like production 
 | Breaking change detection | ✅ Ready |
 | Contract testing | ✅ Ready |
 | Scenario catalog (error states from spec) | ✅ Ready |
+| Runtime utilities (`applyScenario`, `withLatency`, `withSequence`) | ✅ Ready |
 
 ### Coming Soon
 
 | Feature | Status |
 |---------|--------|
-| Runtime utilities (`applyScenario`, `withLatency`) | 🔜 Phase 3 |
 | Storybook addon | 🔮 Phase 4 |
 
 See [ROADMAP.md](ROADMAP.md) for the full vision.
@@ -88,12 +88,13 @@ Edge cases are **expensive** when found in production:
 - Support tickets pile up
 - Developers context-switch to fix urgent issues
 
-With Pactwork, the foundation is already in place. As we add scenario simulation, you'll be able to:
+With Pactwork runtime utilities, you can now:
 - Test every error state before integration
 - Simulate latency and loading states
 - Cover edge cases that are hard to reproduce with real APIs
+- Create flaky API simulations for retry testing
 
-**The vision:** Ship components that already handle what production will throw at them.
+**Ship components that already handle what production will throw at them.**
 
 ---
 
@@ -294,6 +295,46 @@ import { setupServer } from 'msw/node'
 import { handlers } from './mocks/handlers'
 export const server = setupServer(...handlers)
 ```
+
+---
+
+## Runtime Utilities
+
+Apply scenarios and simulate conditions at runtime — in tests, Storybook, or development.
+
+```typescript
+import { handlers, handlerMeta, scenarios } from './mocks'
+import { applyScenario, withLatency, withSequence, pipe } from 'pactwork/runtime'
+
+// Apply error scenario
+const errorHandlers = applyScenario(handlers, handlerMeta, 'getUser', scenarios.getUser.notFound)
+
+// Add latency to all handlers
+const slowHandlers = withLatency(handlers, handlerMeta, 500)
+
+// Simulate flaky API (fail twice, then succeed)
+const flakyHandlers = withSequence(handlers, handlerMeta, 'getUser', [500, 500, 200])
+
+// Compose multiple utilities
+const testHandlers = pipe(
+  handlers,
+  h => withLatency(h, handlerMeta, 100),
+  h => applyScenario(h, handlerMeta, 'getUser', scenarios.getUser.notFound)
+)
+```
+
+### Available Utilities
+
+| Utility | Purpose |
+|---------|---------|
+| `applyScenario(handlers, meta, operationId, scenario)` | Replace response with scenario |
+| `withLatency(handlers, meta, ms)` | Add delay to all responses |
+| `withLatency(handlers, meta, operationId, ms)` | Add delay to specific operation |
+| `withSequence(handlers, meta, operationId, statuses)` | Return different statuses in sequence |
+| `withRateLimit(handlers, meta, operationId, opts)` | Simulate rate limiting (429) |
+| `withNetworkError(handlers, meta, operationId, opts)` | Simulate timeout/abort/connection errors |
+| `withSeed(handlers, meta, seed)` | Deterministic data generation |
+| `pipe(handlers, ...transformers)` | Compose multiple transformers |
 
 ---
 

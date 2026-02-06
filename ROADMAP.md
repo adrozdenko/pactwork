@@ -85,26 +85,26 @@ pactwork scenarios --coverage
 
 ---
 
-### Phase 3: Runtime Utilities 🔮 PLANNED
+### Phase 3: Runtime Utilities ✅ COMPLETE
 
-**Status:** Design phase
+**Status:** Released in v1.1.0
 
 **Objective:** Provide composable utilities to apply scenarios at runtime — in tests, Storybook, or development.
 
 #### API Design
 
 ```typescript
-import { handlers, scenarios } from './mocks/pactwork'
-import { applyScenario, withLatency, withSequence } from 'pactwork/runtime'
+import { handlers, handlerMeta, scenarios } from './mocks'
+import { applyScenario, withLatency, withSequence, pipe } from 'pactwork/runtime'
 
 // Apply a specific scenario
-const errorHandlers = applyScenario(handlers, scenarios.getUser.notFound)
+const errorHandlers = applyScenario(handlers, handlerMeta, 'getUser', scenarios.getUser.notFound)
 
 // Add latency simulation
-const slowHandlers = withLatency(handlers, 2000)
+const slowHandlers = withLatency(handlers, handlerMeta, 2000)
 
 // Simulate flaky API (fail twice, then succeed)
-const flakyHandlers = withSequence(handlers, 'getUser', [500, 500, 200])
+const flakyHandlers = withSequence(handlers, handlerMeta, 'getUser', [500, 500, 200])
 
 // Combine utilities
 const testHandlers = pipe(
@@ -241,7 +241,7 @@ Priority areas:
 |-------|--------|--------|
 | Phase 1 | Q1 2025 | ✅ Complete |
 | Phase 2 | Q1 2025 | ✅ Complete |
-| Phase 3 | Q2 2025 | 🔜 Next |
-| Phase 4 | Q3 2025 | 🔮 Planned |
+| Phase 3 | Q1 2026 | ✅ Complete |
+| Phase 4 | Q2 2026 | 🔜 Next |
 
 *Timelines are estimates. We ship when it's ready.*
