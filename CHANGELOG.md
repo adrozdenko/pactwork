@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Phase 4: Storybook Addon** — `@pactwork/storybook-addon` package
+  - Control API scenarios, latency, and network states directly from stories
+  - Interactive addon panel with scenario dropdown, latency slider, and network toggles
+  - Story parameters: `parameters.pactwork.scenario`, `latency`, `networkError`
+  - Full TypeScript support with autocomplete for parameters
+  - ESM-only build for Storybook 8.x/10.x compatibility
+  - `initPactwork(worker, config)` for easy setup in preview.ts
+  - Handler list view showing available operations and scenarios
+  - Channel-based communication between panel and decorator
+  - 31 unit tests
+
 ## [1.1.0] - 2026-02-06
 
 ### Added

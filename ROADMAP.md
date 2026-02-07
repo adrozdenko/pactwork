@@ -24,14 +24,15 @@ Pactwork enables AI agents to keep API mocks perfectly in sync with OpenAPI spec
 | CI integration | v1.0.0 | GitHub Action `adrozdenko/pactwork@v1` |
 | Scenario catalog | v1.1.0 | Generate typed scenarios from spec |
 | Runtime utilities | v1.1.0 | `applyScenario`, `withLatency`, `withSequence`, etc. |
+| Storybook addon | v1.2.0 | `@pactwork/storybook-addon` for scenario control |
 
 ---
 
-## Next Up
+## Completed
 
-### Phase 4: Storybook Integration 🔜
+### Phase 4: Storybook Integration ✅
 
-**Status:** Design phase
+**Status:** Complete
 
 **Objective:** First-class Storybook addon for scenario selection — toggle error states, latency, and edge cases from the Storybook UI.
 
@@ -63,10 +64,19 @@ export const Empty: Story = {
 
 #### Addon features
 
-- **Scenario dropdown** — Select any scenario for current story
-- **Latency slider** — Adjust response delay in real-time
-- **Network panel** — See which handlers are active
-- **Coverage badge** — Show which scenarios have stories
+- **Scenario dropdown** — Select any scenario for current story ✅
+- **Latency slider** — Adjust response delay in real-time ✅
+- **Network toggles** — Simulate timeout/abort/network-error ✅
+- **Handler list** — See which handlers are active ✅
+- **Coverage badge** — Show which scenarios have stories (Phase 5)
+
+#### Install
+
+```bash
+npm install -D @pactwork/storybook-addon
+```
+
+See the [addon README](packages/storybook-addon/README.md) for full documentation.
 
 ---
 
@@ -128,6 +138,7 @@ Want to help build the Storybook addon? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Phase | Target | Status |
 |-------|--------|--------|
-| Phase 4: Storybook | Q2 2026 | 🔜 Next |
+| Phase 4: Storybook | Q1 2026 | ✅ Complete |
+| Phase 5: Coverage Badge | Q2 2026 | 🔜 Next |
 
 *Timelines are estimates. We ship when it's ready.*

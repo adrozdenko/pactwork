@@ -73,11 +73,11 @@ The generated mocks power **functional prototypes** that behave like production 
 | Scenario catalog (error states from spec) | ✅ Ready |
 | Runtime utilities (`applyScenario`, `withLatency`, `withSequence`) | ✅ Ready |
 
-### Coming Soon
+### Storybook Addon
 
 | Feature | Status |
 |---------|--------|
-| Storybook addon | 🔮 Phase 4 |
+| `@pactwork/storybook-addon` | ✅ Ready |
 
 See [ROADMAP.md](ROADMAP.md) for the full vision.
 
@@ -335,6 +335,68 @@ const testHandlers = pipe(
 | `withNetworkError(handlers, meta, operationId, opts)` | Simulate timeout/abort/connection errors |
 | `withSeed(handlers, meta, seed)` | Deterministic data generation |
 | `pipe(handlers, ...transformers)` | Compose multiple transformers |
+
+---
+
+## Storybook Addon
+
+Control API scenarios directly from Storybook with `@pactwork/storybook-addon`.
+
+### Install
+
+```bash
+npm install -D @pactwork/storybook-addon
+```
+
+### Configure
+
+```typescript
+// .storybook/main.ts
+export default {
+  addons: ['@pactwork/storybook-addon'],
+}
+
+// .storybook/preview.ts
+import { initPactwork } from '@pactwork/storybook-addon'
+import { handlers, handlerMeta, scenarios } from '../mocks'
+import { worker } from '../mocks/browser'
+
+await worker.start()
+initPactwork(worker, { handlers, handlerMeta, scenarios })
+```
+
+### Use in Stories
+
+```typescript
+// Button.stories.tsx
+export const Loading: Story = {
+  parameters: {
+    pactwork: {
+      scenario: 'getUser.loading',
+      latency: 2000
+    }
+  }
+}
+
+export const Error: Story = {
+  parameters: {
+    pactwork: { scenario: 'getUser.serverError' }
+  }
+}
+
+export const NetworkFailure: Story = {
+  parameters: {
+    pactwork: { networkError: 'timeout' }
+  }
+}
+```
+
+### Addon Panel Features
+
+- **Scenario Selector** — Switch between scenarios in real-time
+- **Latency Slider** — Adjust delay from 0-10 seconds
+- **Network State** — Toggle timeout/abort/network-error states
+- **Handler List** — View all available handlers and scenarios
 
 ---
 

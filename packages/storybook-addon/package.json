@@ -1,0 +1,84 @@
+{
+  "name": "@pactwork/storybook-addon",
+  "version": "0.1.0",
+  "description": "Storybook addon for Pactwork - Control API scenarios, latency, and network states directly from stories",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./manager": {
+      "import": "./dist/manager.js",
+      "types": "./dist/manager.d.ts"
+    },
+    "./preview": {
+      "import": "./dist/preview.js",
+      "types": "./dist/preview.d.ts"
+    },
+    "./preset": {
+      "import": "./dist/preset.js",
+      "types": "./dist/preset.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "storybook",
+    "storybook-addon",
+    "pactwork",
+    "msw",
+    "mock",
+    "api",
+    "testing",
+    "scenarios"
+  ],
+  "author": "adrozdenko",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adrozdenko/pactwork.git",
+    "directory": "packages/storybook-addon"
+  },
+  "bugs": {
+    "url": "https://github.com/adrozdenko/pactwork/issues"
+  },
+  "homepage": "https://github.com/adrozdenko/pactwork/tree/main/packages/storybook-addon#readme",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "peerDependencies": {
+    "pactwork": "^1.1.0",
+    "storybook": "^8.4.0 || ^10.0.0",
+    "msw": "^2.0.0"
+  },
+  "devDependencies": {
+    "@storybook/components": "^8.4.0",
+    "@storybook/theming": "^8.4.0",
+    "@types/react": "^18.3.0",
+    "jsdom": "^25.0.0",
+    "storybook": "^8.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "storybook": {
+    "displayName": "Pactwork",
+    "supportedFrameworks": ["react", "vue", "angular", "svelte", "preact", "web-components"],
+    "icon": "https://raw.githubusercontent.com/adrozdenko/pactwork/main/assets/pactwork-icon.svg"
+  }
+}
