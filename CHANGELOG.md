@@ -19,6 +19,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Coverage section in addon panel showing uncovered scenarios
   - 29 unit tests for coverage module
 
+### Changed
+
+- **Clean Code Refactoring** — Applied Uncle Bob principles across codebase
+  - Extract shared utilities to `src/core/utils/` (DRY principle)
+    - `github-escape.ts`: GitHub Actions annotation escaping
+    - `path-matcher.ts`: OpenAPI/MSW path matching logic
+    - `hash.ts`: Spec content hashing with configurable length
+  - Add named constants: `SCHEMA`, `COVERAGE_THRESHOLDS`, `CLI_LIMITS`
+  - Extract long functions in `typegen` and `breaking` modules into focused helpers
+  - Move Panel styled components to `Panel.styles.ts`
+  - Add `ConfigLoadError` class for explicit configuration error handling
+
+### Fixed
+
+- Fix `pathsMatch` argument order in validator (was causing false negatives)
+
 - **Phase 4: Storybook Addon** — `@pactwork/storybook-addon` package
   - Control API scenarios, latency, and network states directly from stories
   - Interactive addon panel with scenario dropdown, latency slider, and network toggles
