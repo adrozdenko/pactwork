@@ -31,6 +31,8 @@ export const EVENTS = {
   HANDLERS_READY: `${ADDON_ID}/handlers-ready`,
   /** Emitted to reset all transformations */
   RESET: `${ADDON_ID}/reset`,
+  /** Emitted with coverage data */
+  COVERAGE_UPDATE: `${ADDON_ID}/coverage-update`,
 } as const;
 
 /** Event type union */

@@ -13,6 +13,7 @@ import { breakingCommand } from './commands/breaking.js'
 import { recordCommand } from './commands/record.js'
 import { verifyCommand } from './commands/verify.js'
 import { scenariosCommand } from './commands/scenarios.js'
+import { coverageCommand } from './commands/coverage.js'
 
 const require = createRequire(import.meta.url)
 const pkg = require('../../package.json') as { version: string }
@@ -141,5 +142,17 @@ program
   .option('--format <type>', 'Output format (console, json)', 'console')
   .option('--skip-validation', 'Skip OpenAPI spec validation')
   .action(scenariosCommand)
+
+program
+  .command('coverage')
+  .description('Analyze Storybook story coverage of OpenAPI scenarios')
+  .option('--spec <path>', 'Path to OpenAPI spec')
+  .option('--stories <dir>', 'Directory to scan for stories', './src')
+  .option('--format <type>', 'Output format (console, json, markdown, github)', 'console')
+  .option('--output <path>', 'Write report to file')
+  .option('--min-coverage <n>', 'Minimum coverage percentage (CI gate)', parseFloat)
+  .option('--ci', 'CI mode (minimal output)')
+  .option('--skip-validation', 'Skip OpenAPI spec validation')
+  .action(coverageCommand)
 
 program.parse()

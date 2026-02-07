@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase 5: Coverage Badge** — `pactwork coverage` command
+  - Analyze Storybook story coverage of OpenAPI scenarios
+  - Regex-based scanner extracts `pactwork.scenario` and `pactwork.scenarios` from story files
+  - Per-operation and global coverage metrics
+  - Four output formats: console, JSON, markdown, GitHub Actions annotations
+  - CI gate with `--min-coverage <n>` threshold enforcement (exit 1 when below)
+  - Color-coded progress bar in Storybook addon panel (green ≥80%, yellow 50-79%, red <50%)
+  - Coverage section in addon panel showing uncovered scenarios
+  - 29 unit tests for coverage module
+
 - **Phase 4: Storybook Addon** — `@pactwork/storybook-addon` package
   - Control API scenarios, latency, and network states directly from stories
   - Interactive addon panel with scenario dropdown, latency slider, and network toggles

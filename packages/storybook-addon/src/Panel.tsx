@@ -11,6 +11,7 @@ import { AddonPanel, Form, ActionBar } from '@storybook/components';
 import { styled } from '@storybook/theming';
 import type { HandlerInfo, PactworkPanelState } from './types.js';
 import { ADDON_ID, PARAM_KEY, EVENTS } from './constants.js';
+import { CoverageSection, type CoverageData } from './CoverageSection.js';
 
 /**
  * Styled components for the panel UI
@@ -163,6 +164,9 @@ export function Panel({ active }: PanelProps): React.ReactElement | null {
   // All available scenarios
   const [scenarios, setScenarios] = useState<string[]>([]);
 
+  // Coverage data
+  const [coverage, setCoverage] = useState<CoverageData | null>(null);
+
   // Story parameters
   const params = useParameter<{ scenario?: string; latency?: number }>(PARAM_KEY, {});
 
@@ -174,6 +178,9 @@ export function Panel({ active }: PanelProps): React.ReactElement | null {
     },
     [EVENTS.STATE_UPDATE]: (newState: Partial<PactworkPanelState>) => {
       setState((prev: PactworkPanelState) => ({ ...prev, ...newState }));
+    },
+    [EVENTS.COVERAGE_UPDATE]: (data: CoverageData) => {
+      setCoverage(data);
     },
   });
 
@@ -264,6 +271,11 @@ export function Panel({ active }: PanelProps): React.ReactElement | null {
       <>
         <ScrollArea>
           <PanelContainer>
+          {/* Coverage Section */}
+          <Section>
+            <CoverageSection coverage={coverage} />
+          </Section>
+
           {/* Scenario Selection */}
           <Section>
             <SectionTitle>Scenario</SectionTitle>

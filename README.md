@@ -151,6 +151,7 @@ Create a PR with the updated handlers. Include:
 | `pactwork record` | Create contract from spec | Contract JSON |
 | `pactwork verify` | Check contract against spec | Verification report |
 | `pactwork scenarios` | List scenarios from spec | Scenario catalog |
+| `pactwork coverage` | Check story coverage of scenarios | Coverage report |
 
 ### Key flags
 
@@ -175,6 +176,16 @@ pactwork breaking --old v1.yaml --new v2.yaml
 
 # GitHub Actions annotation format
 pactwork validate --format github
+
+# Check Storybook story coverage of scenarios
+pactwork coverage --spec ./openapi.yaml --stories ./src
+
+# CI gate — fail if coverage below threshold
+pactwork coverage --min-coverage 80 --ci
+
+# Coverage reports
+pactwork coverage --format markdown --output COVERAGE.md
+pactwork coverage --format github  # GitHub Actions annotations
 ```
 
 ---

@@ -18,8 +18,8 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Test coverage
-coverage/
+# Test coverage (root-level only)
+/coverage/
 
 # Environment
 .env
