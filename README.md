@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/logo.svg" alt="Pactwork" width="200" />
+  <img src="./docs/logo.png" alt="Pactwork" width="200" />
 </p>
 
 <h1 align="center">Pactwork</h1>
