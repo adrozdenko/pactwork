@@ -163,7 +163,7 @@ export function scanStoriesDirectory(
  */
 function matchGlob(path: string, pattern: string): boolean {
   // Escape regex special chars except * and **
-  let regexPattern = pattern
+  const regexPattern = pattern
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
     .replace(/\*\*/g, '{{GLOBSTAR}}')
     .replace(/\*/g, '[^/]*')
