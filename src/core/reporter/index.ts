@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import fs from 'fs-extra'
 import type { ValidationResult } from '../validator/types.js'
 import type { ReporterOptions } from './types.js'
+import { escapeGitHubAnnotation } from '../utils/index.js'
 
 export type { ReportFormat, ReporterOptions } from './types.js'
 
@@ -97,16 +98,7 @@ function reportToJson(result: ValidationResult, output?: string): void {
   }
 }
 
-/**
- * Escape special characters for GitHub Actions annotation format.
- * Must escape % first to avoid double-encoding.
- */
-function escapeGitHubAnnotation(str: string): string {
-  return str
-    .replace(/%/g, '%25')
-    .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A')
-}
+// escapeGitHubAnnotation imported from ../utils/index.js
 
 function reportToGitHub(result: ValidationResult): void {
   // GitHub Actions annotation format

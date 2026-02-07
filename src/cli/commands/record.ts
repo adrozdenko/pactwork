@@ -4,7 +4,7 @@ import { loadConfig } from '../../core/config/index.js'
 import { parseSpec, parseSpecFast } from '../../core/parser/index.js'
 import { generateContractFromSpec } from '../../core/contracts/recorder.js'
 import { ContractStore } from '../../core/contracts/index.js'
-import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { EXIT_CODES, DEFAULTS, CLI_LIMITS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 
 interface RecordOptions {
@@ -57,11 +57,11 @@ export async function recordCommand(options: RecordOptions): Promise<void> {
     console.log(chalk.dim(`Provider: ${provider}`))
     console.log('')
     console.log(chalk.bold('Interactions:'))
-    for (const interaction of contract.interactions.slice(0, 5)) {
+    for (const interaction of contract.interactions.slice(0, CLI_LIMITS.MAX_SUMMARY_ITEMS)) {
       console.log(chalk.dim(`  - ${interaction.description}`))
     }
-    if (contract.interactions.length > 5) {
-      console.log(chalk.dim(`  ... and ${contract.interactions.length - 5} more`))
+    if (contract.interactions.length > CLI_LIMITS.MAX_SUMMARY_ITEMS) {
+      console.log(chalk.dim(`  ... and ${contract.interactions.length - CLI_LIMITS.MAX_SUMMARY_ITEMS} more`))
     }
   } catch (error) {
     handleCommandError(spinner, 'Failed to record contract', error, EXIT_CODES.EXCEPTION)

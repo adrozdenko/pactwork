@@ -235,6 +235,15 @@ function compareResponses(
   }
 }
 
+/** Context for schema comparison */
+interface SchemaCompareContext {
+  changes: BreakingChange[]
+  oldSchemas: Record<string, Schema>
+  newSchemas: Record<string, Schema>
+  isRequestContext: boolean
+  visited: Set<string>
+}
+
 function compareSchemas(
   oldSchema: Schema,
   newSchema: Schema,
@@ -245,89 +254,144 @@ function compareSchemas(
   isRequestContext: boolean,
   visited: Set<string> = new Set()
 ): void {
-  // Resolve refs with cycle detection
+  const ctx: SchemaCompareContext = { changes, oldSchemas, newSchemas, isRequestContext, visited }
+
   const resolvedOld = resolveRef(oldSchema, oldSchemas, visited)
   const resolvedNew = resolveRef(newSchema, newSchemas, visited)
-
-  // If either resolved to null due to cycle, bail out
   if (!resolvedOld || !resolvedNew) return
 
-  // Check type changes
-  if (resolvedOld.type && resolvedNew.type && resolvedOld.type !== resolvedNew.type) {
+  if (checkTypeChange(resolvedOld, resolvedNew, context, changes)) return
+  checkEnumChanges(resolvedOld, resolvedNew, context, changes)
+  checkPropertyChanges(resolvedOld, resolvedNew, context, ctx)
+  checkArrayItems(resolvedOld, resolvedNew, context, ctx)
+}
+
+/** Check if schema type changed. Returns true if it did (to short-circuit). */
+function checkTypeChange(
+  oldSchema: Schema,
+  newSchema: Schema,
+  context: string,
+  changes: BreakingChange[]
+): boolean {
+  if (oldSchema.type && newSchema.type && oldSchema.type !== newSchema.type) {
     changes.push({
       type: 'field-type-changed',
       severity: 'breaking',
       path: context,
-      message: `Type changed from ${resolvedOld.type} to ${resolvedNew.type}`,
+      message: `Type changed from ${oldSchema.type} to ${newSchema.type}`,
     })
-    return
+    return true
   }
+  return false
+}
 
-  // Check enum value removal
-  if (resolvedOld.enum && resolvedNew.enum) {
-    const oldValues = new Set(resolvedOld.enum.map(v => JSON.stringify(v)))
-    const newValues = new Set(resolvedNew.enum.map(v => JSON.stringify(v)))
+/** Check for removed enum values */
+function checkEnumChanges(
+  oldSchema: Schema,
+  newSchema: Schema,
+  context: string,
+  changes: BreakingChange[]
+): void {
+  if (!oldSchema.enum || !newSchema.enum) return
 
-    for (const oldValue of oldValues) {
-      if (!newValues.has(oldValue)) {
-        changes.push({
-          type: 'enum-value-removed',
-          severity: 'breaking',
-          path: context,
-          message: `Enum value removed: ${oldValue}`,
-        })
-      }
-    }
-  }
+  const oldValues = new Set(oldSchema.enum.map(v => JSON.stringify(v)))
+  const newValues = new Set(newSchema.enum.map(v => JSON.stringify(v)))
 
-  // Check object properties
-  if (resolvedOld.properties && resolvedNew.properties) {
-    const oldRequired = new Set(resolvedOld.required || [])
-    const newRequired = new Set(resolvedNew.required || [])
-
-    // Check for removed required fields
-    for (const field of oldRequired) {
-      if (!resolvedNew.properties[field]) {
-        changes.push({
-          type: 'required-field-removed',
-          severity: 'breaking',
-          path: context,
-          field,
-          message: `Required field removed: ${field}`,
-        })
-      }
-    }
-
-    // Check for newly required fields
-    for (const field of newRequired) {
-      if (!oldRequired.has(field)) {
-        const isNewField = !resolvedOld.properties[field]
-        // For request bodies, new required fields are breaking
-        // For responses, they're informational (servers can add fields)
-        changes.push({
-          type: 'required-field-added',
-          severity: isRequestContext ? 'breaking' : 'warning',
-          path: context,
-          field,
-          message: isNewField
-            ? `New required field added: ${field}`
-            : `Field now required: ${field}`,
-        })
-      }
-    }
-
-    // Recursively check nested properties
-    for (const [field, oldProp] of Object.entries(resolvedOld.properties)) {
-      const newProp = resolvedNew.properties[field]
-      if (newProp) {
-        compareSchemas(oldProp, newProp, changes, `${context}.${field}`, oldSchemas, newSchemas, isRequestContext, visited)
-      }
+  for (const oldValue of oldValues) {
+    if (!newValues.has(oldValue)) {
+      changes.push({
+        type: 'enum-value-removed',
+        severity: 'breaking',
+        path: context,
+        message: `Enum value removed: ${oldValue}`,
+      })
     }
   }
+}
 
-  // Check array items
-  if (resolvedOld.items && resolvedNew.items) {
-    compareSchemas(resolvedOld.items, resolvedNew.items, changes, `${context}[]`, oldSchemas, newSchemas, isRequestContext, visited)
+/** Check for property changes (removed/added required fields) */
+function checkPropertyChanges(
+  oldSchema: Schema,
+  newSchema: Schema,
+  context: string,
+  ctx: SchemaCompareContext
+): void {
+  if (!oldSchema.properties || !newSchema.properties) return
+
+  const oldRequired = new Set(oldSchema.required || [])
+  const newRequired = new Set(newSchema.required || [])
+
+  checkRemovedRequiredFields(oldRequired, newSchema.properties, context, ctx.changes)
+  checkNewlyRequiredFields(oldRequired, newRequired, oldSchema.properties, context, ctx)
+  checkNestedProperties(oldSchema.properties, newSchema.properties, context, ctx)
+}
+
+/** Check for removed required fields */
+function checkRemovedRequiredFields(
+  oldRequired: Set<string>,
+  newProperties: Record<string, Schema>,
+  context: string,
+  changes: BreakingChange[]
+): void {
+  for (const field of oldRequired) {
+    if (!newProperties[field]) {
+      changes.push({
+        type: 'required-field-removed',
+        severity: 'breaking',
+        path: context,
+        field,
+        message: `Required field removed: ${field}`,
+      })
+    }
+  }
+}
+
+/** Check for newly required fields */
+function checkNewlyRequiredFields(
+  oldRequired: Set<string>,
+  newRequired: Set<string>,
+  oldProperties: Record<string, Schema>,
+  context: string,
+  ctx: SchemaCompareContext
+): void {
+  for (const field of newRequired) {
+    if (!oldRequired.has(field)) {
+      const isNewField = !oldProperties[field]
+      ctx.changes.push({
+        type: 'required-field-added',
+        severity: ctx.isRequestContext ? 'breaking' : 'warning',
+        path: context,
+        field,
+        message: isNewField ? `New required field added: ${field}` : `Field now required: ${field}`,
+      })
+    }
+  }
+}
+
+/** Recursively check nested properties */
+function checkNestedProperties(
+  oldProperties: Record<string, Schema>,
+  newProperties: Record<string, Schema>,
+  context: string,
+  ctx: SchemaCompareContext
+): void {
+  for (const [field, oldProp] of Object.entries(oldProperties)) {
+    const newProp = newProperties[field]
+    if (newProp) {
+      compareSchemas(oldProp, newProp, ctx.changes, `${context}.${field}`, ctx.oldSchemas, ctx.newSchemas, ctx.isRequestContext, ctx.visited)
+    }
+  }
+}
+
+/** Check array item schema changes */
+function checkArrayItems(
+  oldSchema: Schema,
+  newSchema: Schema,
+  context: string,
+  ctx: SchemaCompareContext
+): void {
+  if (oldSchema.items && newSchema.items) {
+    compareSchemas(oldSchema.items, newSchema.items, ctx.changes, `${context}[]`, ctx.oldSchemas, ctx.newSchemas, ctx.isRequestContext, ctx.visited)
   }
 }
 

@@ -1,8 +1,9 @@
-import { createHash } from 'node:crypto'
 import fs from 'fs-extra'
 import type { Contract, Interaction, RequestSpec, ResponseSpec } from './types.js'
 import type { ParsedSpec } from '../parser/types.js'
 import { ContractStore } from './index.js'
+import { createSpecHash } from '../utils/index.js'
+import { SCHEMA } from '../../constants.js'
 
 export interface RecorderOptions {
   consumer: string
@@ -59,10 +60,10 @@ export class ContractRecorder {
    */
   async generateContract(spec: ParsedSpec, specPath: string): Promise<Contract> {
     const specContent = await fs.readFile(specPath, 'utf-8')
-    const specHash = createHash('sha256').update(specContent).digest('hex').slice(0, 12)
+    const specHash = createSpecHash(specContent)
 
     return {
-      pactwork: '1.0',
+      pactwork: SCHEMA.VERSION,
       generatedAt: new Date().toISOString(),
       consumer: {
         name: this.options.consumer,
@@ -113,7 +114,7 @@ export async function generateContractFromSpec(
   options: RecorderOptions
 ): Promise<Contract> {
   const specContent = await fs.readFile(specPath, 'utf-8')
-  const specHash = createHash('sha256').update(specContent).digest('hex').slice(0, 12)
+  const specHash = createSpecHash(specContent)
 
   const interactions: Interaction[] = spec.endpoints.map(endpoint => {
     // Find first success response
@@ -136,7 +137,7 @@ export async function generateContractFromSpec(
   })
 
   return {
-    pactwork: '1.0',
+    pactwork: SCHEMA.VERSION,
     generatedAt: new Date().toISOString(),
     consumer: {
       name: options.consumer,

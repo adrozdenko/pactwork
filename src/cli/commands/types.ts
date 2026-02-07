@@ -5,7 +5,7 @@ import path from 'path'
 import { loadConfig } from '../../core/config/index.js'
 import { parseSpec, parseSpecFast } from '../../core/parser/index.js'
 import { generateTypes } from '../../core/typegen/index.js'
-import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { EXIT_CODES, DEFAULTS, CLI_LIMITS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 
 interface TypesOptions {
@@ -62,11 +62,11 @@ export async function typesCommand(options: TypesOptions): Promise<void> {
     console.log(chalk.dim(`Output: ${outputPath}`))
     console.log('')
     console.log(chalk.bold('Generated types:'))
-    for (const typeName of result.types.slice(0, 10)) {
+    for (const typeName of result.types.slice(0, CLI_LIMITS.MAX_TYPE_ITEMS)) {
       console.log(chalk.dim(`  - ${typeName}`))
     }
-    if (result.types.length > 10) {
-      console.log(chalk.dim(`  ... and ${result.types.length - 10} more`))
+    if (result.types.length > CLI_LIMITS.MAX_TYPE_ITEMS) {
+      console.log(chalk.dim(`  ... and ${result.types.length - CLI_LIMITS.MAX_TYPE_ITEMS} more`))
     }
   } catch (error) {
     handleCommandError(spinner, 'Failed to generate types', error, EXIT_CODES.EXCEPTION)

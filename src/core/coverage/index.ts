@@ -7,6 +7,8 @@ import chalk from 'chalk'
 import fs from 'fs-extra'
 import type { ScenarioCatalog } from '../scenarios/types.js'
 import type { ReportFormat } from '../reporter/types.js'
+import { escapeGitHubAnnotation } from '../utils/index.js'
+import { COVERAGE_THRESHOLDS, SCHEMA } from '../../constants.js'
 import type {
   CoverageReport,
   OperationCoverage,
@@ -33,16 +35,12 @@ export {
   isStoryFile,
 } from './scanner.js'
 
-/** Coverage level thresholds */
-const GOOD_THRESHOLD = 80
-const PARTIAL_THRESHOLD = 50
-
 /**
  * Get coverage level based on percentage
  */
 export function getCoverageLevel(percentage: number): CoverageLevel {
-  if (percentage >= GOOD_THRESHOLD) return 'good'
-  if (percentage >= PARTIAL_THRESHOLD) return 'partial'
+  if (percentage >= COVERAGE_THRESHOLDS.GOOD) return 'good'
+  if (percentage >= COVERAGE_THRESHOLDS.PARTIAL) return 'partial'
   return 'low'
 }
 
@@ -101,7 +99,7 @@ export function calculateCoverage(
     : 100
 
   return {
-    pactwork: '1.0',
+    pactwork: SCHEMA.VERSION,
     generatedAt: new Date().toISOString(),
     spec: {
       title: catalog.spec.title,
@@ -216,15 +214,7 @@ function formatJson(report: CoverageReport, output?: string): void {
   }
 }
 
-/**
- * Escape special characters for GitHub Actions annotation format
- */
-function escapeGitHubAnnotation(str: string): string {
-  return str
-    .replace(/%/g, '%25')
-    .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A')
-}
+// escapeGitHubAnnotation imported from ../utils/index.js
 
 /**
  * Format report for GitHub Actions

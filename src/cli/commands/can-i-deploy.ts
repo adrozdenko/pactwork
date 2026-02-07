@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import ora from 'ora'
 import { loadConfig } from '../../core/config/index.js'
 import { validateHandlers } from '../../core/validator/index.js'
-import { EXIT_CODES, DEFAULTS } from '../../constants.js'
+import { EXIT_CODES, DEFAULTS, CLI_LIMITS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 
 interface CanIDeployOptions {
@@ -61,13 +61,13 @@ export async function canIDeployCommand(options: CanIDeployOptions): Promise<voi
         console.log(chalk.dim(`Found ${result.drift.length} drift issue(s):`))
         console.log('')
 
-        for (const item of result.drift.slice(0, 5)) {
+        for (const item of result.drift.slice(0, CLI_LIMITS.MAX_SUMMARY_ITEMS)) {
           const icon = item.type === 'missing' ? '−' : item.type === 'extra' ? '+' : '~'
           console.log(`  ${icon} [${item.method.toUpperCase()}] ${item.endpoint}`)
         }
 
-        if (result.drift.length > 5) {
-          console.log(chalk.dim(`  ... and ${result.drift.length - 5} more`))
+        if (result.drift.length > CLI_LIMITS.MAX_SUMMARY_ITEMS) {
+          console.log(chalk.dim(`  ... and ${result.drift.length - CLI_LIMITS.MAX_SUMMARY_ITEMS} more`))
         }
 
         console.log('')

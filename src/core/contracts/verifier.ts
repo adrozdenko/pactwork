@@ -1,5 +1,6 @@
 import type { Contract, Interaction } from './types.js'
 import type { ParsedSpec, Endpoint } from '../parser/types.js'
+import { pathMatchesPattern } from '../utils/index.js'
 
 export type VerificationStatus = 'passed' | 'failed' | 'pending'
 
@@ -113,22 +114,13 @@ function findEndpoint(
   // Try pattern match (for path parameters)
   endpoint = endpoints.find(e => {
     if (e.method !== normalizedMethod) return false
-    return pathMatches(e.path, path)
+    return pathMatchesPattern(e.path, path)
   })
 
   return endpoint
 }
 
-function pathMatches(specPath: string, actualPath: string): boolean {
-  // Replace {param} with placeholder, escape remaining metacharacters, restore placeholders
-  const PLACEHOLDER = '___PARAM___'
-  const withPlaceholders = specPath.replace(/\{[^}]+\}/g, PLACEHOLDER)
-  const escaped = withPlaceholders.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const pattern = escaped.replace(new RegExp(PLACEHOLDER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '[^/]+')
-
-  const regex = new RegExp(`^${pattern}$`)
-  return regex.test(actualPath)
-}
+// pathMatchesPattern imported from ../utils/index.js
 
 function checkParameter(
   param: { name: string; in: string },

@@ -1,6 +1,7 @@
 import SwaggerParser from '@apidevtools/swagger-parser'
 import type { OpenAPI, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { ParsedSpec, Endpoint, HttpMethod, Parameter, Schema, ResponseSpec, RequestBody } from './types.js'
+import { SCHEMA } from '../../constants.js'
 
 export type { ParsedSpec, Endpoint, Parameter, Schema } from './types.js'
 
@@ -62,7 +63,7 @@ function normalizeSpec(api: OpenAPI.Document): ParsedSpec {
     version,
     info: {
       title: api.info?.title ?? 'Untitled API',
-      version: api.info?.version ?? '1.0.0',
+      version: api.info?.version ?? SCHEMA.DEFAULT_API_VERSION,
       description: api.info?.description,
     },
     endpoints,

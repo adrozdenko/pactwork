@@ -1,11 +1,11 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { createHash } from 'node:crypto'
 import fs from 'fs-extra'
 import path from 'path'
 import chalk from 'chalk'
 import { parseSpec, parseSpecFast } from '../parser/index.js'
 import type { GeneratorOptions, GeneratorResult } from './types.js'
+import { createSpecHash } from '../utils/index.js'
 
 export type { GeneratorOptions, GeneratorResult, HandlerInfo } from './types.js'
 
@@ -22,7 +22,7 @@ export async function generateHandlers(options: GeneratorOptions): Promise<Gener
 
   // Calculate spec hash for tracking
   const specContent = await fs.readFile(specPath, 'utf-8')
-  const specHash = createHash('sha256').update(specContent).digest('hex').slice(0, 12)
+  const specHash = createSpecHash(specContent)
 
   // Parse spec to get endpoint info
   // Use fast parsing (no validation) if skipValidation is true

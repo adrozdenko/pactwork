@@ -58,3 +58,33 @@ export const DEFAULTS = {
   /** Default provider name */
   PROVIDER: 'api',
 } as const
+
+/**
+ * Schema versioning for pactwork artifacts
+ */
+export const SCHEMA = {
+  /** Current pactwork schema version for contracts, catalogs, and reports */
+  VERSION: '1.0',
+  /** Default API version when spec doesn't provide one */
+  DEFAULT_API_VERSION: '1.0.0',
+} as const
+
+/**
+ * Coverage thresholds for scenario coverage reports
+ */
+export const COVERAGE_THRESHOLDS = {
+  /** Percentage at or above which coverage is considered "good" */
+  GOOD: 80,
+  /** Percentage at or above which coverage is considered "partial" */
+  PARTIAL: 50,
+} as const
+
+/**
+ * CLI display limits for output formatting
+ */
+export const CLI_LIMITS = {
+  /** Maximum items to show in summary lists (drift, interactions) */
+  MAX_SUMMARY_ITEMS: 5,
+  /** Maximum types to show in type generation summary */
+  MAX_TYPE_ITEMS: 10,
+} as const

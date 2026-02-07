@@ -8,111 +8,24 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useChannel, useParameter, useAddonState } from 'storybook/internal/manager-api';
 import { AddonPanel, Form, ActionBar } from '@storybook/components';
-import { styled } from '@storybook/theming';
 import type { HandlerInfo, PactworkPanelState } from './types.js';
 import { ADDON_ID, PARAM_KEY, EVENTS } from './constants.js';
 import { CoverageSection, type CoverageData } from './CoverageSection.js';
-
-/**
- * Styled components for the panel UI
- */
-const PanelContainer = styled.div`
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`;
-
-const Section = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const SectionTitle = styled.h3`
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: ${(props: { theme: { color: { mediumdark: string } } }) => props.theme.color.mediumdark};
-`;
-
-const ControlRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const SliderContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-`;
-
-const SliderValue = styled.span`
-  font-size: 12px;
-  min-width: 60px;
-  font-family: monospace;
-  color: ${(props: { theme: { color: { defaultText: string } } }) => props.theme.color.defaultText};
-`;
-
-const EmptyState = styled.div`
-  padding: 32px 16px;
-  text-align: center;
-  color: ${(props: { theme: { color: { mediumdark: string } } }) => props.theme.color.mediumdark};
-`;
-
-const HandlerList = styled.ul`
-  margin: 0;
-  padding: 0;
-  list-style: none;
-`;
-
-const HandlerItem = styled.li`
-  padding: 8px;
-  border-bottom: 1px solid ${(props: { theme: { appBorderColor: string } }) => props.theme.appBorderColor};
-  font-size: 12px;
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const HandlerMethod = styled.span<{ method: string }>`
-  font-weight: 600;
-  margin-right: 8px;
-  color: ${(props: { method: string; theme: { color: { positive: string; secondary: string; gold: string; negative: string; defaultText: string } } }) => {
-    switch (props.method) {
-      case 'GET':
-        return props.theme.color.positive;
-      case 'POST':
-        return props.theme.color.secondary;
-      case 'PUT':
-        return props.theme.color.gold;
-      case 'DELETE':
-        return props.theme.color.negative;
-      default:
-        return props.theme.color.defaultText;
-    }
-  }};
-`;
-
-const HandlerPath = styled.span`
-  font-family: monospace;
-  color: ${(props: { theme: { color: { defaultText: string } } }) => props.theme.color.defaultText};
-`;
-
-const ScenarioCount = styled.span`
-  margin-left: 8px;
-  font-size: 11px;
-  color: ${(props: { theme: { color: { mediumdark: string } } }) => props.theme.color.mediumdark};
-`;
-
-const ScrollArea = styled.div`
-  overflow-y: auto;
-  flex: 1;
-`;
+import {
+  PanelContainer,
+  Section,
+  SectionTitle,
+  ControlRow,
+  SliderContainer,
+  SliderValue,
+  EmptyState,
+  HandlerList,
+  HandlerItem,
+  HandlerMethod,
+  HandlerPath,
+  ScenarioCount,
+  ScrollArea,
+} from './Panel.styles.js';
 
 /**
  * Network error type options

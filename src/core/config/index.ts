@@ -20,7 +20,18 @@ const explorer = cosmiconfig('pactwork', {
 let cachedConfig: PactworkConfig | null = null
 
 /**
+ * Configuration loading error with details about the source
+ */
+export class ConfigLoadError extends Error {
+  constructor(message: string, public readonly cause?: unknown) {
+    super(message)
+    this.name = 'ConfigLoadError'
+  }
+}
+
+/**
  * Load Pactwork configuration from the project
+ * @throws {ConfigLoadError} When configuration file exists but cannot be parsed
  */
 export async function loadConfig(): Promise<PactworkConfig | null> {
   if (cachedConfig) {
@@ -36,8 +47,10 @@ export async function loadConfig(): Promise<PactworkConfig | null> {
     }
 
     return null
-  } catch {
-    return null
+  } catch (error) {
+    // Re-throw with more context - helps users understand config syntax errors
+    const message = error instanceof Error ? error.message : String(error)
+    throw new ConfigLoadError(`Failed to load pactwork configuration: ${message}`, error)
   }
 }
 

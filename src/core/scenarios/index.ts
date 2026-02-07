@@ -4,6 +4,7 @@
  */
 
 import type { ParsedSpec, Endpoint } from '../parser/types.js'
+import { SCHEMA } from '../../constants.js'
 import type {
   Scenario,
   OperationScenarios,
@@ -77,7 +78,7 @@ export function generateScenarios(
   }
 
   return {
-    pactwork: '1.0',
+    pactwork: SCHEMA.VERSION,
     generatedAt: new Date().toISOString(),
     spec: {
       title: spec.info.title,

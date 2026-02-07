@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EXIT_CODES, OPENAPI_SPEC_CANDIDATES, DEFAULTS } from './constants.js'
+import { EXIT_CODES, OPENAPI_SPEC_CANDIDATES, DEFAULTS, SCHEMA, COVERAGE_THRESHOLDS, CLI_LIMITS } from './constants.js'
 
 describe('EXIT_CODES', () => {
   it('should have SUCCESS as 0', () => {
@@ -68,5 +68,39 @@ describe('DEFAULTS', () => {
 
   it('should have PROVIDER defined', () => {
     expect(DEFAULTS.PROVIDER).toBe('api')
+  })
+})
+
+describe('SCHEMA', () => {
+  it('should have VERSION as 1.0', () => {
+    expect(SCHEMA.VERSION).toBe('1.0')
+  })
+
+  it('should have DEFAULT_API_VERSION as 1.0.0', () => {
+    expect(SCHEMA.DEFAULT_API_VERSION).toBe('1.0.0')
+  })
+})
+
+describe('COVERAGE_THRESHOLDS', () => {
+  it('should have GOOD as 80', () => {
+    expect(COVERAGE_THRESHOLDS.GOOD).toBe(80)
+  })
+
+  it('should have PARTIAL as 50', () => {
+    expect(COVERAGE_THRESHOLDS.PARTIAL).toBe(50)
+  })
+
+  it('should have GOOD > PARTIAL for logical thresholds', () => {
+    expect(COVERAGE_THRESHOLDS.GOOD).toBeGreaterThan(COVERAGE_THRESHOLDS.PARTIAL)
+  })
+})
+
+describe('CLI_LIMITS', () => {
+  it('should have MAX_SUMMARY_ITEMS as 5', () => {
+    expect(CLI_LIMITS.MAX_SUMMARY_ITEMS).toBe(5)
+  })
+
+  it('should have MAX_TYPE_ITEMS as 10', () => {
+    expect(CLI_LIMITS.MAX_TYPE_ITEMS).toBe(10)
   })
 })

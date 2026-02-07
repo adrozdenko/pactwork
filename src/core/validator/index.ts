@@ -3,6 +3,7 @@ import { glob } from 'glob'
 import { parseSpec, parseSpecFast } from '../parser/index.js'
 import type { Endpoint } from '../parser/types.js'
 import type { ValidationResult, DriftItem, Suggestion, HandlerAnalysis } from './types.js'
+import { pathsMatch } from '../utils/index.js'
 
 export type { ValidationResult, DriftItem, Suggestion } from './types.js'
 
@@ -166,7 +167,8 @@ function findHandler(handlers: HandlerAnalysis[], endpoint: Endpoint): HandlerAn
     }
 
     // Path matching (handle path parameters)
-    return pathsMatch(h.path, endpoint.path)
+    // pathsMatch expects: (specPath, actualPath) where spec uses {param} style
+    return pathsMatch(endpoint.path, h.path)
   })
 }
 
@@ -183,30 +185,9 @@ function findEndpoint(endpoints: Endpoint[], handler: HandlerAnalysis): Endpoint
       return false
     }
 
-    return pathsMatch(handler.path, e.path)
+    // pathsMatch expects: (specPath, actualPath) where spec uses {param} style
+    return pathsMatch(e.path, handler.path)
   })
-}
-
-/**
- * Check if two paths match, handling different path parameter syntaxes.
- * Supports OpenAPI style {id}, MSW style :id, and exact matches.
- * @param handlerPath - Path from the MSW handler (e.g., "/users/:id")
- * @param specPath - Path from OpenAPI spec (e.g., "/users/{id}")
- * @returns true if paths match semantically
- */
-function pathsMatch(handlerPath: string, specPath: string): boolean {
-  // Replace {param} with placeholder, escape remaining metacharacters, restore placeholders
-  const PLACEHOLDER = '___PARAM___'
-  const withPlaceholders = specPath.replace(/\{[^}]+\}/g, PLACEHOLDER)
-  const escaped = withPlaceholders.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const specPattern = escaped.replace(new RegExp(PLACEHOLDER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '([^/]+)')
-
-  const regex = new RegExp(`^${specPattern}$`)
-
-  // Also check exact match for MSW-style params
-  const mswStyleSpec = specPath.replace(/\{([^}]+)\}/g, ':$1')
-
-  return regex.test(handlerPath) || handlerPath === mswStyleSpec || handlerPath === specPath
 }
 
 /**
