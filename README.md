@@ -5,7 +5,7 @@
 <h1 align="center">Pactwork</h1>
 
 <p align="center">
-  <strong>Agentic API mock management. Your mocks stay in sync automatically.</strong>
+  <strong>Contract-first API mocking. Your mocks stay in sync automatically.</strong>
 </p>
 
 <p align="center">
@@ -15,233 +15,51 @@
 </p>
 
 <p align="center">
-  <a href="#for-ai-agents">For AI Agents</a> •
-  <a href="#functional-prototypes-with-storybook">Storybook</a> •
-  <a href="#the-agent-loop">The Agent Loop</a> •
-  <a href="#commands">Commands</a> •
-  <a href="#setup">Setup</a> •
+  <a href="#why-pactwork">Why Pactwork</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#storybook-integration">Storybook</a> •
+  <a href="#runtime-utilities">Runtime</a> •
+  <a href="#ci-integration">CI/CD</a> •
   <a href="ROADMAP.md">Roadmap</a>
 </p>
 
 ---
 
-## For AI Agents
+## Why Pactwork
 
-**You don't need to understand the API. You need to enforce the contract.**
+**The Problem:** API mocks drift from reality. You write handlers manually, the API evolves, and suddenly your tests pass but production fails.
 
-Pactwork gives you a deterministic workflow to keep mocks aligned with the OpenAPI spec:
+**The Solution:** Generate mocks from your OpenAPI spec. Validate continuously. Never drift again.
 
-```text
-validate → generate → commit
-```
-
-No manual diffing. No guessing response shapes. One loop, always correct.
-
----
-
-## Why This Exists
-
-Without Pactwork, keeping mocks in sync means:
-- Reading the OpenAPI spec
-- Finding the matching mock handlers
-- Manually updating response shapes
-- Missing edge cases
-
-With Pactwork:
-- Run `pactwork validate` — instant pass/fail signal
-- If it fails, run `pactwork generate` — mocks regenerated
-- Commit the diff — done
-
-**Mocks become build artifacts, not hand-written code.**
-
----
-
-## Functional Prototypes with Storybook
-
-Pactwork + Storybook = bulletproof UI development.
-
-The generated mocks power **functional prototypes** that behave like production — before integration.
-
-### Available Now
-
-| Feature | Status |
-|---------|--------|
-| Handler generation from spec | ✅ Ready |
-| Drift detection | ✅ Ready |
-| Breaking change detection | ✅ Ready |
-| Contract testing | ✅ Ready |
-| Scenario catalog (error states from spec) | ✅ Ready |
-| Runtime utilities (`applyScenario`, `withLatency`, `withSequence`) | ✅ Ready |
-
-### Storybook Addon
-
-| Feature | Status |
-|---------|--------|
-| `@pactwork/storybook-addon` | ✅ Ready |
-
-See [ROADMAP.md](ROADMAP.md) for the full vision.
-
-### Why this matters
-
-Edge cases are **expensive** when found in production:
-- Users encounter the bug first
-- Support tickets pile up
-- Developers context-switch to fix urgent issues
-
-With Pactwork runtime utilities, you can now:
-- Test every error state before integration
-- Simulate latency and loading states
-- Cover edge cases that are hard to reproduce with real APIs
-- Create flaky API simulations for retry testing
-
-**Ship components that already handle what production will throw at them.**
-
----
-
-## The Agent Loop
-
-Copy this workflow directly:
-
-### 1. Check for drift
-```bash
-pactwork validate --ci
-```
-- Exit `0` = mocks match spec, nothing to do
-- Exit `1` = drift detected, proceed to step 2
-
-### 2. Fix drift
-```bash
-pactwork generate
-```
-Regenerates all handlers from the current spec.
-
-### 3. Verify the fix
-```bash
-pactwork validate --ci
-```
-Should now exit `0`.
-
-### 4. Commit
-Create a PR with the updated handlers. Include:
-- Which endpoints changed
-- Pactwork validation output
-
----
-
-## When to Run
-
-| Trigger | Action |
-|---------|--------|
-| OpenAPI spec changed | Run the agent loop |
-| PR includes spec changes | Validate in CI |
-| Scheduled check | Run validate, alert on drift |
-| Before deploy | Run `can-i-deploy` as gate |
-
----
-
-## Commands
-
-| Command | Purpose | Output |
-|---------|---------|--------|
-| `pactwork validate` | Check if mocks match spec | Exit code + drift report |
-| `pactwork generate` | Create mocks from spec | MSW handler files |
-| `pactwork breaking` | Compare two spec versions | Breaking change report |
-| `pactwork can-i-deploy` | CI deployment gate | Exit code (0 = safe) |
-| `pactwork types` | Generate TypeScript types | Type definition files |
-| `pactwork record` | Create contract from spec | Contract JSON |
-| `pactwork verify` | Check contract against spec | Verification report |
-| `pactwork scenarios` | List scenarios from spec | Scenario catalog |
-| `pactwork coverage` | Check story coverage of scenarios | Coverage report |
-
-### Key flags
+| Without Pactwork | With Pactwork |
+|------------------|---------------|
+| Manually write mock handlers | Generate from spec |
+| Hope mocks match the API | Validate automatically |
+| Miss edge cases | Test every error state |
+| Debug production failures | Catch issues in development |
 
 ```bash
-# CI mode — minimal output, strict exit codes
-pactwork validate --ci
-
-# Auto-fix — regenerate when drift found
-pactwork validate --fix
-
-# Generate handlers + scenario catalog for error testing
-pactwork generate --with-scenarios
-
-# List all scenarios from spec
-pactwork scenarios --list
-
-# Show scenario coverage statistics
-pactwork scenarios --coverage
-
-# Compare API versions
-pactwork breaking --old v1.yaml --new v2.yaml
-
-# GitHub Actions annotation format
-pactwork validate --format github
-
-# Check Storybook story coverage of scenarios
-pactwork coverage --spec ./openapi.yaml --stories ./src
-
-# CI gate — fail if coverage below threshold
-pactwork coverage --min-coverage 80 --ci
-
-# Coverage reports
-pactwork coverage --format markdown --output COVERAGE.md
-pactwork coverage --format github  # GitHub Actions annotations
+# One command. Mocks that match your API.
+npx pactwork generate --spec ./openapi.yaml
 ```
 
 ---
 
-## Agent Playbooks
+## Key Features
 
-### When the OpenAPI spec changes
-
-```bash
-pactwork validate --ci
-if [ $? -ne 0 ]; then
-  pactwork generate
-  pactwork validate --ci  # verify fix
-  # commit changes
-fi
-```
-
-### When validate fails in CI
-
-The spec and mocks are out of sync. Run:
-```bash
-pactwork generate
-```
-Then commit the regenerated handlers.
-
-### When breaking changes are detected
-
-```bash
-pactwork breaking --old main:openapi.yaml --new openapi.yaml
-```
-Review the report. Breaking changes need explicit approval before merge.
-
-### Before deploying
-
-```bash
-pactwork can-i-deploy
-```
-Exit `0` means safe. Exit `1` means drift exists — fix before deploy.
+| Feature | Description |
+|---------|-------------|
+| **Handler Generation** | MSW handlers generated from OpenAPI 2.0, 3.0, 3.1 |
+| **Drift Detection** | Validate mocks match spec, catch breaking changes |
+| **Scenario Catalog** | Error states extracted from spec (404, 500, etc.) |
+| **Runtime Utilities** | Apply scenarios, latency, network errors at runtime |
+| **Storybook Addon** | Control API states directly from your stories |
+| **CI Gates** | Deployment safety with `can-i-deploy` |
+| **Type Generation** | TypeScript types from your spec |
 
 ---
 
-## Exit Codes
-
-Predictable signals for automation:
-
-| Code | Meaning |
-|------|---------|
-| `0` | Pass — mocks match spec |
-| `1` | Fail — drift or breaking changes |
-| `2` | Fail — warnings treated as errors |
-
----
-
-## Setup
-
-One-time configuration by a human. Then agents take over.
+## Quick Start
 
 ### Install
 
@@ -249,69 +67,198 @@ One-time configuration by a human. Then agents take over.
 npm install -D pactwork msw
 ```
 
-### Initialize
+### Generate Handlers
 
 ```bash
-npx pactwork init --spec ./openapi.yaml
+# Generate MSW handlers from your OpenAPI spec
+npx pactwork generate --spec ./openapi.yaml --output ./src/mocks
+
+# Include scenario catalog for error state testing
+npx pactwork generate --spec ./openapi.yaml --with-scenarios
 ```
 
-### Configure (optional)
+### Use with MSW
 
-Create `pactwork.config.ts`:
-
-```typescript
-import { defineConfig } from 'pactwork'
-
-export default defineConfig({
-  spec: { path: './api/openapi.yaml' },
-  generate: { output: './src/mocks', typescript: true },
-})
-```
-
----
-
-## CI Integration
-
-### GitHub Action
-
-```yaml
-- uses: adrozdenko/pactwork@v1
-  with:
-    spec: ./openapi.yaml
-```
-
-### CLI in CI
-
-```yaml
-- run: npx pactwork validate --ci --format github
-- run: npx pactwork can-i-deploy
-```
-
----
-
-## Using Generated Handlers
-
-The generated handlers work with MSW (Mock Service Worker):
-
-**Browser:**
+**Browser (Storybook, Development):**
 ```typescript
 import { setupWorker } from 'msw/browser'
 import { handlers } from './mocks/handlers'
-export const worker = setupWorker(...handlers)
+
+const worker = setupWorker(...handlers)
+await worker.start()
 ```
 
-**Node/Tests:**
+**Node (Tests):**
 ```typescript
 import { setupServer } from 'msw/node'
 import { handlers } from './mocks/handlers'
-export const server = setupServer(...handlers)
+
+const server = setupServer(...handlers)
+beforeAll(() => server.listen())
+afterAll(() => server.close())
+```
+
+---
+
+## Storybook Integration
+
+Test every API state visually with `@pactwork/storybook-addon`.
+
+### Install
+
+```bash
+npm install -D @pactwork/storybook-addon
+```
+
+### Configure
+
+**1. Register the addon:**
+
+```typescript
+// .storybook/main.ts
+export default {
+  addons: ['@pactwork/storybook-addon'],
+}
+```
+
+**2. Set up MSW and toolbar controls:**
+
+```typescript
+// .storybook/preview.ts
+import React from 'react'
+import { setupWorker } from 'msw/browser'
+import { handlers, handlerMeta, scenarios } from '../src/mocks/generated/handlers'
+import {
+  setScenario,
+  setLatency,
+  setNetworkState,
+  resetState,
+} from '../src/mocks/generated/handlers'
+
+// Start MSW
+const worker = setupWorker(...handlers)
+await worker.start({ onUnhandledRequest: 'bypass' })
+
+// Decorator applies toolbar state to handlers
+const pactworkDecorator = (Story, context) => {
+  const [globals] = useGlobals()
+
+  resetState()
+
+  if (globals.pactworkScenario) {
+    const [operationId, scenarioName] = globals.pactworkScenario.split('.')
+    setScenario(operationId, scenarioName)
+  }
+
+  if (globals.pactworkLatency > 0) {
+    setLatency(globals.pactworkLatency)
+  }
+
+  if (globals.pactworkNetwork === 'offline') {
+    setNetworkState(true)
+  }
+
+  return React.createElement(Story)
+}
+
+export default {
+  decorators: [pactworkDecorator],
+  globalTypes: {
+    pactworkScenario: {
+      description: 'API Scenario',
+      toolbar: {
+        title: 'Scenario',
+        icon: 'lightning',
+        items: [
+          { value: '', title: 'Default (success)' },
+          { value: 'getUser.notFound', title: 'getUser → Not Found (404)' },
+          { value: 'getUser.serverError', title: 'getUser → Server Error (500)' },
+        ],
+        dynamicTitle: true,
+      },
+    },
+    pactworkLatency: {
+      description: 'API Latency',
+      toolbar: {
+        title: 'Latency',
+        icon: 'timer',
+        items: [
+          { value: 0, title: 'No delay' },
+          { value: 500, title: '500ms' },
+          { value: 1000, title: '1 second' },
+          { value: 2000, title: '2 seconds' },
+        ],
+        dynamicTitle: true,
+      },
+    },
+    pactworkNetwork: {
+      description: 'Network State',
+      toolbar: {
+        title: 'Network',
+        icon: 'globe',
+        items: [
+          { value: 'online', title: 'Online' },
+          { value: 'offline', title: 'Offline (Error)' },
+        ],
+        dynamicTitle: true,
+      },
+    },
+  },
+}
+```
+
+### How It Works
+
+| Component | Purpose |
+|-----------|---------|
+| **Toolbar Controls** | Switch scenarios, latency, and network state globally |
+| **Addon Panel** | View request logs, current state, and available handlers |
+
+**Toolbar (Control):**
+- Scenario dropdown — switch between success, error, and edge case responses
+- Latency selector — simulate slow networks (0ms to 5s)
+- Network toggle — simulate offline/connection errors
+
+**Panel (Observability):**
+- Current state display — see active scenario, latency, network state
+- Request log — track all API calls with method, path, status, timing
+- Handler list — view available operations and their scenarios
+
+### Story Parameters
+
+You can also set scenarios per-story:
+
+```typescript
+// UserCard.stories.tsx
+import { setScenario, resetState, setLatency } from '../mocks/handlers'
+
+export const Loading: Story = {
+  beforeEach: () => {
+    resetState()
+    setLatency(3000)
+  },
+}
+
+export const NotFound: Story = {
+  beforeEach: () => {
+    resetState()
+    setScenario('getUser', 'notFound')
+  },
+}
+
+export const ServerError: Story = {
+  beforeEach: () => {
+    resetState()
+    setScenario('getUser', 'serverError')
+  },
+}
 ```
 
 ---
 
 ## Runtime Utilities
 
-Apply scenarios and simulate conditions at runtime — in tests, Storybook, or development.
+Apply scenarios and simulate conditions programmatically.
 
 ```typescript
 import { handlers, handlerMeta, scenarios } from './mocks'
@@ -349,81 +296,109 @@ const testHandlers = pipe(
 
 ---
 
-## Storybook Addon
+## CLI Commands
 
-Control API scenarios directly from Storybook with `@pactwork/storybook-addon`.
+| Command | Purpose |
+|---------|---------|
+| `pactwork generate` | Generate MSW handlers from spec |
+| `pactwork validate` | Check if mocks match spec |
+| `pactwork breaking` | Compare two spec versions for breaking changes |
+| `pactwork types` | Generate TypeScript types from spec |
+| `pactwork scenarios` | List available scenarios from spec |
+| `pactwork can-i-deploy` | CI deployment gate |
+| `pactwork record` | Create contract from spec |
+| `pactwork verify` | Verify contract against spec |
 
-### Install
+### Common Flags
 
 ```bash
-npm install -D @pactwork/storybook-addon
+# CI mode — minimal output, strict exit codes
+pactwork validate --ci
+
+# Auto-fix — regenerate when drift found
+pactwork validate --fix
+
+# Generate with scenarios for error testing
+pactwork generate --with-scenarios
+
+# Compare API versions for breaking changes
+pactwork breaking --old v1.yaml --new v2.yaml
+
+# GitHub Actions annotations
+pactwork validate --format github
 ```
-
-### Configure
-
-```typescript
-// .storybook/main.ts
-export default {
-  addons: ['@pactwork/storybook-addon'],
-}
-
-// .storybook/preview.ts
-import { initPactwork } from '@pactwork/storybook-addon'
-import { handlers, handlerMeta, scenarios } from '../mocks'
-import { worker } from '../mocks/browser'
-
-await worker.start()
-initPactwork(worker, { handlers, handlerMeta, scenarios })
-```
-
-### Use in Stories
-
-```typescript
-// Button.stories.tsx
-export const Loading: Story = {
-  parameters: {
-    pactwork: {
-      scenario: 'getUser.loading',
-      latency: 2000
-    }
-  }
-}
-
-export const Error: Story = {
-  parameters: {
-    pactwork: { scenario: 'getUser.serverError' }
-  }
-}
-
-export const NetworkFailure: Story = {
-  parameters: {
-    pactwork: { networkError: 'timeout' }
-  }
-}
-```
-
-### Addon Panel Features
-
-- **Scenario Selector** — Switch between scenarios in real-time
-- **Latency Slider** — Adjust delay from 0-10 seconds
-- **Network State** — Toggle timeout/abort/network-error states
-- **Handler List** — View all available handlers and scenarios
 
 ---
 
-## How It Works
+## CI Integration
 
-```text
-OpenAPI Spec → Pactwork → MSW Handlers
-     ↓                         ↓
-  (source of truth)    (generated artifact)
-     ↓                         ↓
-     └──── validate ───────────┘
-              ↓
-         drift report
+### GitHub Action
+
+```yaml
+- uses: adrozdenko/pactwork@v1
+  with:
+    spec: ./openapi.yaml
 ```
 
-The spec is the source of truth. Handlers are generated, not authored. Validation catches drift. Agents close the loop.
+### CLI in CI
+
+```yaml
+steps:
+  - name: Validate mocks
+    run: npx pactwork validate --ci --format github
+
+  - name: Check deployment safety
+    run: npx pactwork can-i-deploy
+```
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Pass — mocks match spec |
+| `1` | Fail — drift or breaking changes |
+| `2` | Warnings treated as errors |
+
+---
+
+## The Agent Loop
+
+For AI agents and automation, use this workflow:
+
+```bash
+# 1. Check for drift
+pactwork validate --ci
+# Exit 0 = mocks match, done
+# Exit 1 = drift detected, continue
+
+# 2. Fix drift
+pactwork generate
+
+# 3. Verify fix
+pactwork validate --ci
+
+# 4. Commit changes
+git add src/mocks
+git commit -m "fix: regenerate mocks from updated spec"
+```
+
+---
+
+## Configuration
+
+Create `pactwork.config.ts` for project-wide settings:
+
+```typescript
+import { defineConfig } from 'pactwork'
+
+export default defineConfig({
+  spec: { path: './api/openapi.yaml' },
+  generate: {
+    output: './src/mocks',
+    typescript: true,
+  },
+})
+```
 
 ---
 

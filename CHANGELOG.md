@@ -5,6 +5,40 @@ All notable changes to Pactwork will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-09
+
+### Added
+
+- **Storybook Addon v1.0** — Production-ready `@pactwork/storybook-addon`
+  - Toolbar controls for scenario, latency, and network state (via Storybook globalTypes)
+  - Observability panel showing current state, request logs, and available handlers
+  - Request logging with method badges, status colors, and timing
+  - 63 unit tests across addon modules
+  - Full Storybook 8.x and 10.x compatibility
+  - ESM-only build with proper TypeScript declarations
+
+### Changed
+
+- **Addon Architecture Redesign** — Separated control from observability
+  - Toolbar (globalTypes) handles state control — reliable cross-iframe communication
+  - Panel provides observability — request logs, state display, handler info
+  - Removed channel-based control which was unreliable between manager/preview iframes
+- **Build System** — Fixed DTS generation for addon package
+  - Added tsconfig path mappings for `pactwork/runtime` peer dependency
+  - Proper declaration file generation for all exports
+
+### Removed
+
+- **Orphaned Code Cleanup**
+  - Removed `Panel.styles.ts` (unused after Panel rewrite)
+  - Removed `CoverageSection.tsx` (Phase 5 feature, not yet integrated)
+
+### Fixed
+
+- Fixed `import.meta.resolve()` returning file:// URLs that esbuild couldn't resolve
+- Fixed Panel not updating when toolbar controls changed
+- Fixed TypeScript declaration build errors for peer dependency types
+
 ## [Unreleased]
 
 ### Added
@@ -15,9 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Per-operation and global coverage metrics
   - Four output formats: console, JSON, markdown, GitHub Actions annotations
   - CI gate with `--min-coverage <n>` threshold enforcement (exit 1 when below)
-  - Color-coded progress bar in Storybook addon panel (green ≥80%, yellow 50-79%, red <50%)
-  - Coverage section in addon panel showing uncovered scenarios
-  - 29 unit tests for coverage module
 
 ### Changed
 
@@ -27,24 +58,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `path-matcher.ts`: OpenAPI/MSW path matching logic
     - `hash.ts`: Spec content hashing with configurable length
   - Add named constants: `SCHEMA`, `COVERAGE_THRESHOLDS`, `CLI_LIMITS`
-  - Extract long functions in `typegen` and `breaking` modules into focused helpers
-  - Move Panel styled components to `Panel.styles.ts`
-  - Add `ConfigLoadError` class for explicit configuration error handling
 
 ### Fixed
 
 - Fix `pathsMatch` argument order in validator (was causing false negatives)
-
-- **Phase 4: Storybook Addon** — `@pactwork/storybook-addon` package
-  - Control API scenarios, latency, and network states directly from stories
-  - Interactive addon panel with scenario dropdown, latency slider, and network toggles
-  - Story parameters: `parameters.pactwork.scenario`, `latency`, `networkError`
-  - Full TypeScript support with autocomplete for parameters
-  - ESM-only build for Storybook 8.x/10.x compatibility
-  - `initPactwork(worker, config)` for easy setup in preview.ts
-  - Handler list view showing available operations and scenarios
-  - Channel-based communication between panel and decorator
-  - 31 unit tests
 
 ## [1.1.0] - 2026-02-06
 
@@ -109,10 +126,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Endpoint existence, parameter, and response validation
   - Formatted console and JSON output
 
-## [1.0.0] - 2025-02-05
-
-### Added
-
 - **CLI Commands**
   - `pactwork init` — Initialize Pactwork in a project with auto-detection of OpenAPI specs
   - `pactwork generate` — Generate MSW handlers from OpenAPI specifications
@@ -172,5 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[1.2.0]: https://github.com/adrozdenko/pactwork/releases/tag/v1.2.0
+[1.1.0]: https://github.com/adrozdenko/pactwork/releases/tag/v1.1.0
 [1.0.0]: https://github.com/adrozdenko/pactwork/releases/tag/v1.0.0
 [0.1.0]: https://github.com/adrozdenko/pactwork/releases/tag/v0.1.0

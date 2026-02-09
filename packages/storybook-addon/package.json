@@ -1,6 +1,6 @@
 {
   "name": "@pactwork/storybook-addon",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Storybook addon for Pactwork - Control API scenarios, latency, and network states directly from stories",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,7 +60,7 @@
     "node": ">=20.19.0"
   },
   "peerDependencies": {
-    "pactwork": "^1.1.0",
+    "pactwork": "^1.2.0",
     "storybook": "^8.4.0 || ^10.0.0",
     "msw": "^2.0.0"
   },

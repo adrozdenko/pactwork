@@ -20,7 +20,12 @@
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "pactwork": ["../../dist/index.d.ts"],
+      "pactwork/runtime": ["../../dist/runtime/index.d.ts"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
