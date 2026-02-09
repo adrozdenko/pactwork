@@ -23,8 +23,8 @@ let cachedConfig: PactworkConfig | null = null
  * Configuration loading error with details about the source
  */
 export class ConfigLoadError extends Error {
-  constructor(message: string, public readonly cause?: unknown) {
-    super(message)
+  constructor(message: string, cause?: unknown) {
+    super(message, { cause })
     this.name = 'ConfigLoadError'
   }
 }

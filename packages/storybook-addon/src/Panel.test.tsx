@@ -191,14 +191,13 @@ describe('Panel types', () => {
   });
 
   describe('MAX_LOG_ENTRIES constant', () => {
-    // The Panel limits log entries to 50
-    const MAX_LOG_ENTRIES = 50;
-
-    it('should be 50', () => {
+    it('should be 50', async () => {
+      const { MAX_LOG_ENTRIES } = await import('./Panel.js');
       expect(MAX_LOG_ENTRIES).toBe(50);
     });
 
-    it('should truncate log correctly', () => {
+    it('should truncate log correctly', async () => {
+      const { MAX_LOG_ENTRIES } = await import('./Panel.js');
       const entries = Array.from({ length: 60 }, (_, i) => ({ id: i }));
       const newEntry = { id: 999 };
       const updated = [newEntry, ...entries].slice(0, MAX_LOG_ENTRIES);

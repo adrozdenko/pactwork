@@ -52,7 +52,7 @@ export async function typesCommand(options: TypesOptions): Promise<void> {
     const outputPath = path.join(outputDir, 'types.ts')
 
     // Ensure directory exists
-    await fs.ensureDir(path.dirname(outputPath))
+    await fs.ensureDir(outputDir)
 
     // Write types
     await fs.writeFile(outputPath, result.code)

@@ -178,7 +178,7 @@ interface PanelProps {
   active: boolean;
 }
 
-const MAX_LOG_ENTRIES = 50;
+export const MAX_LOG_ENTRIES = 50;
 
 export function Panel({ active }: PanelProps): React.ReactElement | null {
   const [handlers, setHandlers] = useState<HandlerInfo[]>([]);

@@ -8,7 +8,7 @@ import { EXIT_CODES, DEFAULTS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 import type { ReportFormat } from '../../core/reporter/types.js'
 
-interface ValidateOptions {
+export interface ValidateOptions {
   spec?: string
   handlers?: string
   fix?: boolean

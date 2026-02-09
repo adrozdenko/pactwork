@@ -112,7 +112,7 @@ function reportToGitHub(result: ValidationResult): void {
     console.log('::notice::All handlers match specification')
   } else {
     const errorCount = result.drift.filter(d => d.severity === 'error').length
-    console.log(`::error::Validation failed with ${escapeGitHubAnnotation(`Validation failed with ${errorCount} error(s)`)}`)
+    console.log(`::error::${escapeGitHubAnnotation(`Validation failed with ${errorCount} error(s)`)}`)
   }
 }
 

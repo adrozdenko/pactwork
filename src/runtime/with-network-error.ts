@@ -210,7 +210,7 @@ export function withIntermittentError(
   validateMetaMap(meta);
   validateOperationId(meta, operationId);
 
-  if (failureProbability < 0 || failureProbability > 1) {
+  if (!Number.isFinite(failureProbability) || failureProbability < 0 || failureProbability > 1) {
     throw new Error('failureProbability must be between 0 and 1');
   }
 
