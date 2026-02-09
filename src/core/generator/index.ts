@@ -40,11 +40,13 @@ export async function generateHandlers(options: GeneratorOptions): Promise<Gener
       cwd: process.cwd(),
     })
   } catch (error) {
-    // msw-auto-mock might not be installed, generate basic handlers instead
-    if (options.verbose) {
-      const errorMsg = error instanceof Error ? error.message : String(error)
-      console.log(chalk.dim(`[Generator] msw-auto-mock not available (${errorMsg}), using basic handler generator`))
+    // Only fallback to basic generator if msw-auto-mock binary is missing
+    const isNotFound = error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT'
+    if (!isNotFound) {
+      throw error
     }
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.log(chalk.dim(`[Generator] msw-auto-mock not available (${errorMsg}), using basic handler generator`))
     await generateBasicHandlers(spec, options)
   }
 

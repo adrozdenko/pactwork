@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD041 -->
 ---
 id: pattern-typescript-cycle-detection-in-schema-comparison
 title: Cycle Detection in Recursive Schema Comparison

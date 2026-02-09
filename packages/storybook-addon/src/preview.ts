@@ -60,9 +60,12 @@ export function initPactwork(
   // Set up channel listeners for panel communication
   const channel = addons.getChannel();
 
-  channel.on(EVENTS.SCENARIO_CHANGE, handleScenarioChange);
-  channel.on(EVENTS.LATENCY_CHANGE, handleLatencyChange);
-  channel.on(EVENTS.NETWORK_CHANGE, handleNetworkChange);
+  channel.on(EVENTS.SCENARIO_CHANGE, (...args: Parameters<typeof handleScenarioChange>) =>
+    handleScenarioChange(...args).catch((err: unknown) => console.error('[Pactwork] Scenario change error:', err)));
+  channel.on(EVENTS.LATENCY_CHANGE, (...args: Parameters<typeof handleLatencyChange>) =>
+    handleLatencyChange(...args).catch((err: unknown) => console.error('[Pactwork] Latency change error:', err)));
+  channel.on(EVENTS.NETWORK_CHANGE, (...args: Parameters<typeof handleNetworkChange>) =>
+    handleNetworkChange(...args).catch((err: unknown) => console.error('[Pactwork] Network change error:', err)));
   channel.on(EVENTS.RESET, resetHandlers);
 
   // Handle state request from panel
