@@ -11,6 +11,7 @@ export type BreakingChangeType =
   | 'parameter-required'
   | 'response-removed'
   | 'media-type-removed'
+  | 'enum-constraint-added'
   | 'schema-removed'
 
 export type BreakingChangeSeverity = 'breaking' | 'warning' | 'info'
@@ -360,7 +361,7 @@ function checkEnumChanges(
   // New enum constraint added (old had no enum, new has enum)
   if (!oldSchema.enum && newSchema.enum) {
     changes.push({
-      type: 'enum-value-removed',
+      type: 'enum-constraint-added',
       severity: isRequestContext ? 'breaking' : 'warning',
       path: context,
       message: `Enum constraint added: ${newSchema.enum.map(v => JSON.stringify(v)).join(', ')}`,

@@ -109,7 +109,11 @@ export function generateScenariosCode(catalog: ScenarioCatalog): string {
     lines.push(`  ${safeIdentifier(operationId)}: {`)
 
     for (const [scenarioKey, scenario] of Object.entries(operation.scenarios)) {
-      const comment = scenario.description ? ` // ${scenario.description}` : ''
+      let comment = ''
+      if (scenario.description) {
+        const sanitized = scenario.description.trim().replace(/\n/g, ' ').replace(/\*\//g, '* /').replace(/^\/\//, '')
+        comment = ` // ${sanitized}`
+      }
       lines.push(`    ${scenarioKey}: { status: '${scenario.status}' },${comment}`)
     }
 

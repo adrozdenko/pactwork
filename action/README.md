@@ -39,10 +39,21 @@ jobs:
         run: npm ci
 
       - name: Validate API contracts
+        id: pact_check
         uses: adrozdenko/pactwork@v1
         with:
           spec: ./openapi.yaml
           fail-on-warning: true
+
+      - name: Check results
+        if: always()
+        run: |
+          echo "Valid: ${{ steps.pact_check.outputs.valid }}"
+          echo "Drift count: ${{ steps.pact_check.outputs.drift-count }}"
+          if [ "${{ steps.pact_check.outputs.valid }}" != "true" ]; then
+            echo "::error::API contract validation failed with ${{ steps.pact_check.outputs.drift-count }} drift issues"
+            exit 1
+          fi
 ```
 
 ### Generate + Validate
@@ -77,6 +88,7 @@ jobs:
       - run: npm ci
 
       - name: Check if safe to deploy
+        id: gate
         uses: adrozdenko/pactwork@v1
         with:
           command: can-i-deploy
@@ -84,6 +96,12 @@ jobs:
       - name: Deploy
         if: success()
         run: ./deploy.sh
+
+      - name: Gate failed
+        if: failure()
+        run: |
+          echo "::error::Deployment gate failed — contract drift detected. Run 'pactwork validate' locally for details."
+          exit 1
 ```
 
 ## Inputs

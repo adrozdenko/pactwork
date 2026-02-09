@@ -275,10 +275,9 @@ describe('operationId fallback', () => {
 
     const catalog = generateScenarios(specWithoutOperationId)
 
-    // Should have generated an operationId
+    // Should have generated an operationId from method + path
     const operationIds = Object.keys(catalog.operations)
     expect(operationIds.length).toBe(1)
-    expect(operationIds[0]).toContain('get')
-    expect(operationIds[0]).toContain('products')
+    expect(operationIds[0]).toBe('get_products_ByproductId_reviews')
   })
 })

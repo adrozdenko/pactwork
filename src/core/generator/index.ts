@@ -49,7 +49,7 @@ export async function generateHandlers(options: GeneratorOptions): Promise<Gener
   }
 
   // Post-process generated files
-  await postProcess(outputDir, specHash)
+  await postProcess(outputDir, specHash, options.typescript !== false)
 
   // Collect handler information
   const handlers = spec.endpoints.map(endpoint => ({
@@ -163,8 +163,9 @@ export const server = setupServer(...handlers)
 /**
  * Post-process generated files to add Pactwork metadata
  */
-async function postProcess(outputDir: string, specHash: string): Promise<void> {
-  const handlersPath = path.join(outputDir, 'handlers.ts')
+async function postProcess(outputDir: string, specHash: string, typescript: boolean = true): Promise<void> {
+  const ext = typescript ? 'ts' : 'js'
+  const handlersPath = path.join(outputDir, `handlers.${ext}`)
 
   if (await fs.pathExists(handlersPath)) {
     let content = await fs.readFile(handlersPath, 'utf-8')

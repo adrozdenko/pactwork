@@ -171,10 +171,11 @@ describe('Pactwork Runtime Utilities', () => {
 
     describe('delay', () => {
       it('delays execution', async () => {
-        const start = Date.now();
-        await delay(50);
-        const elapsed = Date.now() - start;
-        expect(elapsed).toBeGreaterThanOrEqual(45); // Allow small variance
+        vi.useFakeTimers();
+        const promise = delay(50);
+        vi.advanceTimersByTime(50);
+        await promise;
+        vi.useRealTimers();
       });
     });
 

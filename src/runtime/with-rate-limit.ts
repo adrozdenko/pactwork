@@ -70,6 +70,9 @@ export function withRateLimit(
 
   const methodLower = method.toLowerCase() as keyof typeof http;
   const rateLimitHandler = http[methodLower](path, async (info: { request: Request }) => {
+    if (!rateLimitStates.has(stateKey)) {
+      rateLimitStates.set(stateKey, { requestTimestamps: [], limitedCount: 0 });
+    }
     const state = rateLimitStates.get(stateKey)!;
     const now = Date.now();
 

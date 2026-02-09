@@ -7,7 +7,7 @@ import { verifyContract, formatVerificationResult, type VerificationResult } fro
 import { EXIT_CODES, DEFAULTS } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 
-interface VerifyOptions {
+export interface VerifyOptions {
   spec?: string
   contract?: string
   format?: 'console' | 'json'
