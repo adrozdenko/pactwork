@@ -177,14 +177,15 @@ export async function simulateHandler(
   handler: HttpHandler,
   request: Request
 ): Promise<Response> {
-  // MSW handlers have a resolver property we can access
-  // This extracts and calls the resolver directly
-  const handlerInfo = handler.info as {
-    resolver?: (info: { request: Request }) => Promise<Response> | Response;
-  };
+  // MSW v2 stores the resolver on the handler instance (not on handler.info).
+  // Access it via the internal property since there is no public API for this.
+  const handlerAny = handler as Record<string, unknown>;
+  const resolver = handlerAny.resolver as
+    | ((info: { request: Request }) => Promise<Response> | Response)
+    | undefined;
 
-  if (handlerInfo.resolver) {
-    return handlerInfo.resolver({ request });
+  if (typeof resolver === 'function') {
+    return resolver({ request });
   }
 
   // Fallback: return a default response

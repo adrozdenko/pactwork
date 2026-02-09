@@ -8,6 +8,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { EVENTS } from './constants.js';
+import { getStatusColor, getMethodColor, formatLatency, formatStatus, getRowBackground } from './panel-utils.js';
 
 describe('Panel display logic', () => {
   describe('scenario display', () => {
@@ -51,12 +52,10 @@ describe('Panel display logic', () => {
 
   describe('latency display', () => {
     it('should show "None" for zero latency', () => {
-      const formatLatency = (latency: number) => latency > 0 ? `${latency}ms` : 'None';
       expect(formatLatency(0)).toBe('None');
     });
 
     it('should show milliseconds for positive latency', () => {
-      const formatLatency = (latency: number) => latency > 0 ? `${latency}ms` : 'None';
       expect(formatLatency(500)).toBe('500ms');
       expect(formatLatency(1000)).toBe('1000ms');
       expect(formatLatency(2000)).toBe('2000ms');
@@ -64,14 +63,6 @@ describe('Panel display logic', () => {
   });
 
   describe('status badge color logic', () => {
-    // Maps the StatusBadge styled component color logic
-    const getStatusColor = (status: number): string => {
-      if (status === 0) return '#f93e3e'; // error/offline
-      if (status >= 500) return '#f93e3e'; // server error
-      if (status >= 400) return '#fca130'; // client error
-      return '#49cc90'; // success
-    };
-
     it('should return success color for 2xx status', () => {
       expect(getStatusColor(200)).toBe('#49cc90');
       expect(getStatusColor(201)).toBe('#49cc90');
@@ -102,8 +93,6 @@ describe('Panel display logic', () => {
   });
 
   describe('status text display', () => {
-    const formatStatus = (status: number) => status === 0 ? 'ERR' : status;
-
     it('should show "ERR" for status 0', () => {
       expect(formatStatus(0)).toBe('ERR');
     });
@@ -116,16 +105,6 @@ describe('Panel display logic', () => {
   });
 
   describe('method badge colors', () => {
-    const getMethodColor = (method: string): string => {
-      switch (method) {
-        case 'GET': return '#61affe';
-        case 'POST': return '#49cc90';
-        case 'PUT': return '#fca130';
-        case 'DELETE': return '#f93e3e';
-        default: return '#999';
-      }
-    };
-
     it('should return blue for GET', () => {
       expect(getMethodColor('GET')).toBe('#61affe');
     });
@@ -149,13 +128,6 @@ describe('Panel display logic', () => {
   });
 
   describe('request log row background', () => {
-    // Maps the RequestLogRow background logic
-    const getRowBackground = (status: number): string => {
-      if (status === 0) return 'rgba(255, 0, 0, 0.05)';
-      if (status >= 400) return 'rgba(255, 165, 0, 0.05)';
-      return 'transparent';
-    };
-
     it('should be transparent for success', () => {
       expect(getRowBackground(200)).toBe('transparent');
       expect(getRowBackground(201)).toBe('transparent');

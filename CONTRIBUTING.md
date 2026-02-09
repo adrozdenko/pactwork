@@ -42,7 +42,7 @@ pactwork/
 │   │   └── utils.ts    # Shared CLI utilities
 │   ├── core/
 │   │   ├── config/     # Configuration loader
-│   │   ├── contracts/  # Contract storage (planned)
+│   │   ├── contracts/  # Contract storage
 │   │   ├── generator/  # MSW handler generation
 │   │   ├── parser/     # OpenAPI spec parsing
 │   │   ├── reporter/   # Output formatting

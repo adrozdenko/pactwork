@@ -180,7 +180,7 @@ ${content}`
       await fs.writeFile(handlersPath, content)
     } else {
       // Update spec hash
-      content = content.replace(/Spec hash: \w+/, `Spec hash: ${specHash}`)
+      content = content.replace(/Spec hash: .+/, `Spec hash: ${specHash}`)
       await fs.writeFile(handlersPath, content)
     }
   }

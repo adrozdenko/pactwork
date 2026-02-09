@@ -11,6 +11,7 @@ import { AddonPanel, Button } from '@storybook/components';
 import { styled } from '@storybook/theming';
 import type { HandlerInfo } from './types.js';
 import { EVENTS } from './constants.js';
+import { getStatusColor, getMethodColor, getRowBackground } from './panel-utils.js';
 
 // Styled components
 const PanelContainer = styled.div`
@@ -110,11 +111,7 @@ const RequestLogRow = styled.div<{ status: number }>`
   padding: 8px 12px;
   border-top: 1px solid ${({ theme }) => theme.appBorderColor};
   font-size: 12px;
-  background: ${({ status, theme }) =>
-    status === 0 ? 'rgba(255, 0, 0, 0.05)' :
-    status >= 400 ? 'rgba(255, 165, 0, 0.05)' :
-    'transparent'
-  };
+  background: ${({ status }) => getRowBackground(status)};
 `;
 
 const MethodBadge = styled.span<{ method: string }>`
@@ -123,26 +120,13 @@ const MethodBadge = styled.span<{ method: string }>`
   border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
-  background: ${({ method }) => {
-    switch (method) {
-      case 'GET': return '#61affe';
-      case 'POST': return '#49cc90';
-      case 'PUT': return '#fca130';
-      case 'DELETE': return '#f93e3e';
-      default: return '#999';
-    }
-  }};
+  background: ${({ method }) => getMethodColor(method)};
   color: white;
 `;
 
 const StatusBadge = styled.span<{ status: number }>`
   font-weight: 600;
-  color: ${({ status }) =>
-    status === 0 ? '#f93e3e' :
-    status >= 500 ? '#f93e3e' :
-    status >= 400 ? '#fca130' :
-    '#49cc90'
-  };
+  color: ${({ status }) => getStatusColor(status)};
 `;
 
 const EmptyState = styled.div`

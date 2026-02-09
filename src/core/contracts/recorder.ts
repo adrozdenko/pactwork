@@ -117,8 +117,29 @@ export async function generateContractFromSpec(
   const specHash = createSpecHash(specContent)
 
   const interactions: Interaction[] = spec.endpoints.map(endpoint => {
-    // Find first success response
-    const successStatus = Object.keys(endpoint.responses).find(s => s.startsWith('2')) || '200'
+    // Find the best 2xx success response: prefer '200', then lowest numeric 2xx, then 'default' as 200
+    const responseKeys = Object.keys(endpoint.responses)
+    const numericSuccessKeys = responseKeys
+      .filter(s => /^2\d{2}$/.test(s))
+      .sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+
+    let successStatus: string
+    let statusCode: number
+
+    if (numericSuccessKeys.includes('200')) {
+      successStatus = '200'
+      statusCode = 200
+    } else if (numericSuccessKeys.length > 0) {
+      successStatus = numericSuccessKeys[0]
+      statusCode = parseInt(successStatus, 10)
+    } else if (responseKeys.includes('default')) {
+      successStatus = 'default'
+      statusCode = 200
+    } else {
+      successStatus = '200'
+      statusCode = 200
+    }
+
     const response = endpoint.responses[successStatus]
 
     return {
@@ -128,7 +149,7 @@ export async function generateContractFromSpec(
         path: endpoint.path,
       },
       response: {
-        status: parseInt(successStatus, 10),
+        status: statusCode,
         body: response?.content?.['application/json']?.schema
           ? { _schema: 'See OpenAPI spec' }
           : undefined,
