@@ -11,8 +11,10 @@ const HTTP_METHODS: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete', 'he
  * Parse and validate an OpenAPI specification
  */
 export async function parseSpec(specPath: string): Promise<ParsedSpec> {
-  // Validate and dereference the spec
-  const api = await SwaggerParser.validate(specPath) as OpenAPI.Document
+  // Validate and dereference the spec (external $ref resolution disabled for security)
+  const api = await SwaggerParser.validate(specPath, {
+    resolve: { external: false },
+  }) as OpenAPI.Document
 
   return normalizeSpec(api)
 }

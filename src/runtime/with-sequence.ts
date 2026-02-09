@@ -74,8 +74,12 @@ export function withSequence<TData = unknown>(
     sequenceStates.set(stateKey, { currentIndex: 0, totalCalls: 0 });
   }
 
-  const methodLower = method.toLowerCase() as keyof typeof http;
-  const sequenceHandler = http[methodLower](path, async () => {
+  const SUPPORTED_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'] as const;
+  const methodLower = method.toLowerCase();
+  if (!SUPPORTED_METHODS.includes(methodLower as typeof SUPPORTED_METHODS[number])) {
+    throw new Error(`Unsupported HTTP method "${method}" for operation "${operationId}"`);
+  }
+  const sequenceHandler = http[methodLower as keyof typeof http](path, async () => {
     const state = sequenceStates.get(stateKey)!;
 
     // Get current step

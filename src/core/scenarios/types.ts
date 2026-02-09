@@ -1,5 +1,5 @@
 /**
- * Scenario types for Pactwork Phase 2
+ * Scenario types for Pactwork Phase 3
  * Enables simulation of error states, empty states, and edge cases from OpenAPI spec
  */
 

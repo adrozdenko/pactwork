@@ -13,7 +13,7 @@ severity: critical|warning|suggestion
 tags: [searchable, keywords]
 applies_to: [packages/affected]
 created: YYYY-MM-DD
-related_pattern: anti-pattern-xxx
+related_pattern: anti-pattern-xxx   # ID of a complementary pattern or anti-pattern (cross-links pairs)
 ---
 
 # Title
