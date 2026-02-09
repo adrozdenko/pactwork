@@ -124,7 +124,7 @@ function findEndpoint(
 
 function checkParameter(
   param: { name: string; in: string },
-  request: { path: string; query?: Record<string, string>; headers?: Record<string, string> }
+  request: { path: string; query?: Record<string, string>; headers?: Record<string, string>; cookies?: Record<string, string> }
 ): boolean {
   switch (param.in) {
     case 'path':
@@ -137,6 +137,8 @@ function checkParameter(
         Object.fromEntries(
           Object.entries(request.headers).map(([k, v]) => [k.toLowerCase(), v])
         ) : false
+    case 'cookie':
+      return request.cookies ? param.name in request.cookies : false
     default:
       return true
   }

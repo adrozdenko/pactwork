@@ -76,7 +76,7 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
     // Generate scenarios if requested
     let scenariosGenerated = false
     const ext = typescript ? 'ts' : 'js'
-    if (options.withScenarios) {
+    if (options.withScenarios && result.spec) {
       spinner.start('Generating scenario catalog...')
 
       // Reuse the parsed spec from generateHandlers to avoid double parsing

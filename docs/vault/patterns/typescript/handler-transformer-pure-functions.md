@@ -13,7 +13,7 @@ created: 2026-02-06
 
 ## Context
 
-When building runtime utilities that modify MSW handlers
+When building runtime utilities that modify MSW handlers, mutations cause unpredictable behavior and testing difficulties.
 
 ## Pattern
 
@@ -28,8 +28,9 @@ export function withLatency(
   operationId: string,
   delayMs: number
 ): HttpHandler[] {
-  const handlerMeta = findHandlerMeta(meta, operationId)!;
-  const newHandler = http[method](path, async (info) => {
+  const { method, path, index } = findHandlerMeta(meta, operationId)!;
+  const originalHandler = handlers[index];
+  const newHandler = http[method as keyof typeof http](path, async (info) => {
     await delay(delayMs);
     return callOriginalResolver(originalHandler, info);
   });

@@ -13,7 +13,7 @@ created: 2026-02-06
 
 ## Context
 
-When comparing or resolving OpenAPI schemas with $ref
+When comparing or resolving OpenAPI schemas with `$ref` references, recursive structures can cause infinite loops if not handled properly.
 
 ## Pattern
 

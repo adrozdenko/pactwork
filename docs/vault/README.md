@@ -11,7 +11,7 @@ This vault serves as:
 
 ## Structure
 
-```
+```text
 docs/vault/
 ├── patterns/              # What TO do
 │   └── {category}/

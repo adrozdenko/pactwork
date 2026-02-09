@@ -403,7 +403,13 @@ function resolveRef(schema: Schema, schemas: Record<string, Schema>, visited: Se
     }
     visited.add(schema.$ref)
     const refName = schema.$ref.replace('#/components/schemas/', '')
-    return schemas[refName] || schema
+    const resolved = schemas[refName]
+    if (!resolved) {
+      // Return null for missing refs to signal unresolved reference
+      // (external refs or missing schema definitions)
+      return null
+    }
+    return resolved
   }
   return schema
 }

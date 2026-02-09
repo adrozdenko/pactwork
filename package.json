@@ -52,7 +52,7 @@
   },
   "homepage": "https://github.com/adrozdenko/pactwork#readme",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.11.0"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",

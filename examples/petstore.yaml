@@ -2,6 +2,7 @@ openapi: 3.0.3
 info:
   title: Pet Store API
   version: 1.0.0
+security: []
 paths:
   /pets:
     get:

@@ -55,6 +55,7 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
       spinner.text = `Verifying ${summary.consumer} → ${summary.provider}...`
       const contract = await store.load(summary.consumer, summary.provider)
       if (!contract) {
+        console.warn(chalk.yellow(`  ⚠ Could not load contract: ${summary.consumer} → ${summary.provider}`))
         continue
       }
       const result = verifyContract(contract, spec)

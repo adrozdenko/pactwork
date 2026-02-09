@@ -72,7 +72,12 @@ function generateSchemaTypes(ctx: TypeGenContext, schemas: Record<string, Schema
   for (const [name, schema] of Object.entries(schemas)) {
     const typeName = pascalCase(name)
     const typeCode = schemaToType(schema, ctx.schemas)
-    ctx.lines.push(`export interface ${typeName} ${typeCode}`)
+    // Use 'interface' only for object shapes, 'type' for everything else
+    if (typeCode.startsWith('{')) {
+      ctx.lines.push(`export interface ${typeName} ${typeCode}`)
+    } else {
+      ctx.lines.push(`export type ${typeName} = ${typeCode};`)
+    }
     ctx.lines.push('')
     ctx.generatedTypes.push(typeName)
   }

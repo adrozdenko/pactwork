@@ -5,6 +5,30 @@ All notable changes to Pactwork will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Phase 5: Coverage Badge** — `pactwork coverage` command
+  - Analyze Storybook story coverage of OpenAPI scenarios
+  - Regex-based scanner extracts `pactwork.scenario` and `pactwork.scenarios` from story files
+  - Per-operation and global coverage metrics
+  - Four output formats: console, JSON, markdown, GitHub Actions annotations
+  - CI gate with `--min-coverage <n>` threshold enforcement (exit 1 when below)
+
+### Changed
+
+- **Clean Code Refactoring** — Applied Uncle Bob principles across codebase
+  - Extract shared utilities to `src/core/utils/` (DRY principle)
+    - `github-escape.ts`: GitHub Actions annotation escaping
+    - `path-matcher.ts`: OpenAPI/MSW path matching logic
+    - `hash.ts`: Spec content hashing with configurable length
+  - Add named constants: `SCHEMA`, `COVERAGE_THRESHOLDS`, `CLI_LIMITS`
+
+### Fixed
+
+- Fix `pathsMatch` argument order in validator (was causing false negatives)
+
 ## [1.2.0] - 2026-02-09
 
 ### Added
@@ -38,30 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `import.meta.resolve()` returning file:// URLs that esbuild couldn't resolve
 - Fixed Panel not updating when toolbar controls changed
 - Fixed TypeScript declaration build errors for peer dependency types
-
-## [Unreleased]
-
-### Added
-
-- **Phase 5: Coverage Badge** — `pactwork coverage` command
-  - Analyze Storybook story coverage of OpenAPI scenarios
-  - Regex-based scanner extracts `pactwork.scenario` and `pactwork.scenarios` from story files
-  - Per-operation and global coverage metrics
-  - Four output formats: console, JSON, markdown, GitHub Actions annotations
-  - CI gate with `--min-coverage <n>` threshold enforcement (exit 1 when below)
-
-### Changed
-
-- **Clean Code Refactoring** — Applied Uncle Bob principles across codebase
-  - Extract shared utilities to `src/core/utils/` (DRY principle)
-    - `github-escape.ts`: GitHub Actions annotation escaping
-    - `path-matcher.ts`: OpenAPI/MSW path matching logic
-    - `hash.ts`: Spec content hashing with configurable length
-  - Add named constants: `SCHEMA`, `COVERAGE_THRESHOLDS`, `CLI_LIMITS`
-
-### Fixed
-
-- Fix `pathsMatch` argument order in validator (was causing false negatives)
 
 ## [1.1.0] - 2026-02-06
 
@@ -185,6 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[Unreleased]: https://github.com/adrozdenko/pactwork/compare/v1.2.0...HEAD
 [1.2.0]: https://github.com/adrozdenko/pactwork/releases/tag/v1.2.0
 [1.1.0]: https://github.com/adrozdenko/pactwork/releases/tag/v1.1.0
 [1.0.0]: https://github.com/adrozdenko/pactwork/releases/tag/v1.0.0

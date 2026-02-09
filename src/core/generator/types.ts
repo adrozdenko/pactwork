@@ -42,7 +42,7 @@ export interface GeneratorResult {
   /** Hash of the spec file */
   specHash: string
   /** Parsed spec (for reuse, avoids double parsing) */
-  spec: import('../parser/types.js').ParsedSpec
+  spec?: import('../parser/types.js').ParsedSpec
 }
 
 export interface HandlerInfo {

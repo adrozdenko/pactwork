@@ -72,6 +72,9 @@ export function wrapHandler(
 
   const { method, path, index } = handlerMeta;
   const originalHandler = handlers[index];
+  if (!originalHandler) {
+    throw new Error(`No handler found at index ${index} for operationId "${operationId}"`);
+  }
 
   // Extract the original resolver behavior
   // MSW handlers store their resolver internally

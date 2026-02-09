@@ -13,7 +13,7 @@ created: 2026-02-06
 
 ## Context
 
-When needing to find/replace specific handlers by operation
+When needing to find/replace specific handlers by operation ID at runtime, linear search is inefficient and error-prone.
 
 ## Pattern
 

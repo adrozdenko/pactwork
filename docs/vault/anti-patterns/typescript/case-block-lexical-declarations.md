@@ -26,7 +26,11 @@ ESLint no-case-declarations rule forbids const/let in case blocks without braces
 case 'abort':
   const error = new Error('aborted');
   throw error;
+```
 
+## Example (Good)
+
+```typescript
 // ✅ Good - wrap in braces
 case 'abort': {
   const error = new Error('aborted');

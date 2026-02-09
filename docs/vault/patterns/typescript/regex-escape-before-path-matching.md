@@ -13,7 +13,7 @@ created: 2026-02-06
 
 ## Context
 
-When converting OpenAPI paths to regex patterns for matching
+When converting OpenAPI paths to regex patterns for matching, ensure all regex metacharacters are escaped to prevent false matches.
 
 ## Pattern
 
