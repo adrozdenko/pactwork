@@ -24,4 +24,4 @@ Pactwork:
 - Uses `execFile` (not `exec`) to prevent shell injection when invoking subprocesses
 - Does not execute user-provided code
 - Reads and writes only to specified directories
-- Does not make network requests except when explicitly configured
+- Disables external `$ref` resolution in the OpenAPI parser to prevent unintended network requests (SSRF). Only local file references are resolved.

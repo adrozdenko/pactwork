@@ -404,7 +404,7 @@ export default defineConfig({
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 20.11+
 - MSW 2.x
 - OpenAPI 2.0, 3.0, or 3.1 spec
 
