@@ -13,7 +13,7 @@ created: 2026-02-06
 
 ## Context
 
-When using const/let inside switch case statements
+This anti-pattern applies when using `const` or `let` inside `switch` case statements without wrapping the case body in braces.
 
 ## Anti-Pattern
 

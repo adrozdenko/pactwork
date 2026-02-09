@@ -56,6 +56,13 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
       const contract = await store.load(summary.consumer, summary.provider)
       if (!contract) {
         console.warn(chalk.yellow(`  ⚠ Could not load contract: ${summary.consumer} → ${summary.provider}`))
+        allPassed = false
+        results.push({
+          status: 'failed' as const,
+          contract: { consumer: summary.consumer, provider: summary.provider },
+          results: [],
+          summary: { total: 0, passed: 0, failed: 1, pending: 0 },
+        })
         continue
       }
       const result = verifyContract(contract, spec)

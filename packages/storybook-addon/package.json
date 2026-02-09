@@ -57,7 +57,7 @@
   },
   "homepage": "https://github.com/adrozdenko/pactwork/tree/main/packages/storybook-addon#readme",
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=20.11.0"
   },
   "peerDependencies": {
     "pactwork": "^1.2.0",

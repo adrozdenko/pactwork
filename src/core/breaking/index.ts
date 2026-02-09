@@ -112,8 +112,8 @@ function compareParameters(
   newEndpoint: Endpoint,
   changes: BreakingChange[]
 ): void {
-  const oldParams = new Map(oldEndpoint.parameters.map(p => [`${p.in}:${p.name}`, p]))
-  const newParams = new Map(newEndpoint.parameters.map(p => [`${p.in}:${p.name}`, p]))
+  const oldParams = new Map((oldEndpoint.parameters || []).map(p => [`${p.in}:${p.name}`, p]))
+  const newParams = new Map((newEndpoint.parameters || []).map(p => [`${p.in}:${p.name}`, p]))
 
   // Check for removed parameters
   for (const [key, oldParam] of oldParams) {
@@ -200,9 +200,12 @@ function compareResponses(
   oldSchemas: Record<string, Schema>,
   newSchemas: Record<string, Schema>
 ): void {
+  const oldResponses = oldEndpoint.responses || {}
+  const newResponses = newEndpoint.responses || {}
+
   // Check for removed response codes
-  for (const status of Object.keys(oldEndpoint.responses)) {
-    if (!newEndpoint.responses[status]) {
+  for (const status of Object.keys(oldResponses)) {
+    if (!newResponses[status]) {
       changes.push({
         type: 'response-removed',
         severity: 'warning',
@@ -214,8 +217,8 @@ function compareResponses(
   }
 
   // Compare response schemas
-  for (const [status, oldResponse] of Object.entries(oldEndpoint.responses)) {
-    const newResponse = newEndpoint.responses[status]
+  for (const [status, oldResponse] of Object.entries(oldResponses)) {
+    const newResponse = newResponses[status]
     if (newResponse) {
       const oldSchema = oldResponse.content?.['application/json']?.schema
       const newSchema = newResponse.content?.['application/json']?.schema
@@ -241,7 +244,8 @@ interface SchemaCompareContext {
   oldSchemas: Record<string, Schema>
   newSchemas: Record<string, Schema>
   isRequestContext: boolean
-  visited: Set<string>
+  visitedOld: Set<string>
+  visitedNew: Set<string>
 }
 
 function compareSchemas(
@@ -252,18 +256,28 @@ function compareSchemas(
   oldSchemas: Record<string, Schema>,
   newSchemas: Record<string, Schema>,
   isRequestContext: boolean,
-  visited: Set<string> = new Set()
+  visitedOld: Set<string> = new Set(),
+  visitedNew: Set<string> = new Set()
 ): void {
-  const ctx: SchemaCompareContext = { changes, oldSchemas, newSchemas, isRequestContext, visited }
+  const ctx: SchemaCompareContext = { changes, oldSchemas, newSchemas, isRequestContext, visitedOld, visitedNew }
 
-  const resolvedOld = resolveRef(oldSchema, oldSchemas, visited)
-  const resolvedNew = resolveRef(newSchema, newSchemas, visited)
+  const resolvedOld = resolveRef(oldSchema, oldSchemas, visitedOld)
+  const resolvedNew = resolveRef(newSchema, newSchemas, visitedNew)
   if (!resolvedOld || !resolvedNew) return
 
   if (checkTypeChange(resolvedOld, resolvedNew, context, changes)) return
   checkEnumChanges(resolvedOld, resolvedNew, context, changes)
   checkPropertyChanges(resolvedOld, resolvedNew, context, ctx)
   checkArrayItems(resolvedOld, resolvedNew, context, ctx)
+}
+
+/** Normalize schema type to comparable string (handles OpenAPI 3.1 array types) */
+function normalizeType(type: string | string[] | undefined): string {
+  if (!type) return ''
+  if (Array.isArray(type)) {
+    return [...type].sort().join('|')
+  }
+  return type
 }
 
 /** Check if schema type changed. Returns true if it did (to short-circuit). */
@@ -273,7 +287,10 @@ function checkTypeChange(
   context: string,
   changes: BreakingChange[]
 ): boolean {
-  if (oldSchema.type && newSchema.type && oldSchema.type !== newSchema.type) {
+  const oldType = normalizeType(oldSchema.type)
+  const newType = normalizeType(newSchema.type)
+
+  if (oldType && newType && oldType !== newType) {
     changes.push({
       type: 'field-type-changed',
       severity: 'breaking',
@@ -378,7 +395,7 @@ function checkNestedProperties(
   for (const [field, oldProp] of Object.entries(oldProperties)) {
     const newProp = newProperties[field]
     if (newProp) {
-      compareSchemas(oldProp, newProp, ctx.changes, `${context}.${field}`, ctx.oldSchemas, ctx.newSchemas, ctx.isRequestContext, ctx.visited)
+      compareSchemas(oldProp, newProp, ctx.changes, `${context}.${field}`, ctx.oldSchemas, ctx.newSchemas, ctx.isRequestContext, ctx.visitedOld, ctx.visitedNew)
     }
   }
 }
@@ -391,7 +408,7 @@ function checkArrayItems(
   ctx: SchemaCompareContext
 ): void {
   if (oldSchema.items && newSchema.items) {
-    compareSchemas(oldSchema.items, newSchema.items, ctx.changes, `${context}[]`, ctx.oldSchemas, ctx.newSchemas, ctx.isRequestContext, ctx.visited)
+    compareSchemas(oldSchema.items, newSchema.items, ctx.changes, `${context}[]`, ctx.oldSchemas, ctx.newSchemas, ctx.isRequestContext, ctx.visitedOld, ctx.visitedNew)
   }
 }
 

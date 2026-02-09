@@ -9,8 +9,6 @@ export interface TypeGenOptions {
   includePathParams?: boolean
   /** Include query parameter types */
   includeQueryParams?: boolean
-  /** Export style: 'named' or 'default' */
-  exportStyle?: 'named' | 'default'
 }
 
 export interface TypeGenResult {
@@ -209,6 +207,10 @@ function schemaToType(schema: Schema, schemas: Record<string, Schema>, indent = 
     case 'array':
       if (schema.items) {
         const itemType = schemaToType(schema.items, schemas, indent)
+        // Wrap in parentheses if itemType is a union or intersection
+        if (itemType.includes(' | ') || itemType.includes(' & ')) {
+          return `(${itemType})[]`
+        }
         return `${itemType}[]`
       }
       return 'unknown[]'
