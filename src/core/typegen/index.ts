@@ -169,6 +169,30 @@ function generateResponseTypes(ctx: TypeGenContext, endpoint: Endpoint, baseName
 }
 
 /**
+ * Convert a single OpenAPI type string to TypeScript type
+ * Used for OpenAPI 3.1 array types (e.g., ["string", "null"])
+ */
+function typeToTS(type: string): string {
+  switch (type) {
+    case 'string':
+      return 'string'
+    case 'integer':
+    case 'number':
+      return 'number'
+    case 'boolean':
+      return 'boolean'
+    case 'null':
+      return 'null'
+    case 'object':
+      return 'Record<string, unknown>'
+    case 'array':
+      return 'unknown[]'
+    default:
+      return 'unknown'
+  }
+}
+
+/**
  * Convert OpenAPI schema to TypeScript type definition
  */
 function schemaToType(schema: Schema, schemas: Record<string, Schema>, indent = 0): string {
@@ -192,6 +216,12 @@ function schemaToType(schema: Schema, schemas: Record<string, Schema>, indent = 
 
   if (schema.enum) {
     return schema.enum.map(v => JSON.stringify(v)).join(' | ')
+  }
+
+  // Handle OpenAPI 3.1 array types (e.g., ["string", "null"])
+  if (Array.isArray(schema.type)) {
+    const types = schema.type.map(t => typeToTS(t))
+    return types.join(' | ')
   }
 
   switch (schema.type) {

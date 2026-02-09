@@ -17,7 +17,7 @@ This anti-pattern applies when using `const` or `let` inside `switch` case state
 
 ## Anti-Pattern
 
-ESLint no-case-declarations rule forbids const/let in case blocks without braces. The lexical scope is shared across all cases, which can cause unexpected behavior.
+ESLint `no-case-declarations` rule forbids `const`/`let` in case blocks without braces. The lexical scope is shared across all cases, which can cause unexpected behavior.
 
 ## Example (Bad)
 
@@ -40,6 +40,6 @@ case 'abort': {
 
 ## Why It's Wrong
 
-Without braces, const/let declarations are hoisted to the switch scope, potentially causing 'already declared' errors or accessing uninitialized variables from other cases.
+Without braces, `const`/`let` declarations are hoisted to the switch scope, potentially causing 'already declared' errors or accessing uninitialized variables from other cases.
 
 

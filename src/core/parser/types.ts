@@ -61,7 +61,8 @@ export interface MediaType {
 }
 
 export interface Schema {
-  type?: string
+  /** Type can be string or array of strings (OpenAPI 3.1) */
+  type?: string | string[]
   format?: string
   properties?: Record<string, Schema>
   items?: Schema

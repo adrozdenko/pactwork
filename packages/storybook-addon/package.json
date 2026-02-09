@@ -7,20 +7,20 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./manager": {
-      "import": "./dist/manager.js",
-      "types": "./dist/manager.d.ts"
+      "types": "./dist/manager.d.ts",
+      "import": "./dist/manager.js"
     },
     "./preview": {
-      "import": "./dist/preview.js",
-      "types": "./dist/preview.d.ts"
+      "types": "./dist/preview.d.ts",
+      "import": "./dist/preview.js"
     },
     "./preset": {
-      "import": "./dist/preset.js",
-      "types": "./dist/preset.d.ts"
+      "types": "./dist/preset.d.ts",
+      "import": "./dist/preset.js"
     }
   },
   "files": [

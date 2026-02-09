@@ -60,8 +60,12 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
         results.push({
           status: 'failed' as const,
           contract: { consumer: summary.consumer, provider: summary.provider },
-          results: [],
-          summary: { total: 0, passed: 0, failed: 1, pending: 0 },
+          results: [{
+            description: 'Contract load',
+            status: 'failed' as const,
+            errors: ['Could not load contract file - it may be corrupted or have permission issues'],
+          }],
+          summary: { total: 1, passed: 0, failed: 1, pending: 0 },
         })
         continue
       }

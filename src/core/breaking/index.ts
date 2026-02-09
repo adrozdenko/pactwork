@@ -166,19 +166,35 @@ function compareRequestBody(
   oldSchemas: Record<string, Schema>,
   newSchemas: Record<string, Schema>
 ): void {
-  const oldBody = oldEndpoint.requestBody?.content?.['application/json']?.schema
-  const newBody = newEndpoint.requestBody?.content?.['application/json']?.schema
+  const oldContent = oldEndpoint.requestBody?.content || {}
+  const newContent = newEndpoint.requestBody?.content || {}
 
-  if (oldBody && newBody) {
-    compareSchemas(
-      oldBody,
-      newBody,
-      changes,
-      `${newEndpoint.method.toUpperCase()} ${newEndpoint.path} request`,
-      oldSchemas,
-      newSchemas,
-      true
-    )
+  // Compare all media types
+  const allMediaTypes = new Set([...Object.keys(oldContent), ...Object.keys(newContent)])
+
+  for (const mediaType of allMediaTypes) {
+    const oldSchema = oldContent[mediaType]?.schema
+    const newSchema = newContent[mediaType]?.schema
+
+    if (oldSchema && !newSchema) {
+      changes.push({
+        type: 'response-removed',
+        severity: 'warning',
+        path: newEndpoint.path,
+        method: newEndpoint.method,
+        message: `Request media type removed: ${mediaType}`,
+      })
+    } else if (oldSchema && newSchema) {
+      compareSchemas(
+        oldSchema,
+        newSchema,
+        changes,
+        `${newEndpoint.method.toUpperCase()} ${newEndpoint.path} request (${mediaType})`,
+        oldSchemas,
+        newSchemas,
+        true
+      )
+    }
   }
 
   // New required request body is breaking
@@ -216,23 +232,39 @@ function compareResponses(
     }
   }
 
-  // Compare response schemas
+  // Compare response schemas for all media types
   for (const [status, oldResponse] of Object.entries(oldResponses)) {
     const newResponse = newResponses[status]
     if (newResponse) {
-      const oldSchema = oldResponse.content?.['application/json']?.schema
-      const newSchema = newResponse.content?.['application/json']?.schema
+      const oldContent = oldResponse.content || {}
+      const newContent = newResponse.content || {}
 
-      if (oldSchema && newSchema) {
-        compareSchemas(
-          oldSchema,
-          newSchema,
-          changes,
-          `${newEndpoint.method.toUpperCase()} ${newEndpoint.path} response ${status}`,
-          oldSchemas,
-          newSchemas,
-          false
-        )
+      // Compare all media types for this response
+      const allMediaTypes = new Set([...Object.keys(oldContent), ...Object.keys(newContent)])
+
+      for (const mediaType of allMediaTypes) {
+        const oldSchema = oldContent[mediaType]?.schema
+        const newSchema = newContent[mediaType]?.schema
+
+        if (oldSchema && !newSchema) {
+          changes.push({
+            type: 'response-removed',
+            severity: 'warning',
+            path: oldEndpoint.path,
+            method: oldEndpoint.method,
+            message: `Response ${status} media type removed: ${mediaType}`,
+          })
+        } else if (oldSchema && newSchema) {
+          compareSchemas(
+            oldSchema,
+            newSchema,
+            changes,
+            `${newEndpoint.method.toUpperCase()} ${newEndpoint.path} response ${status} (${mediaType})`,
+            oldSchemas,
+            newSchemas,
+            false
+          )
+        }
       }
     }
   }
@@ -265,8 +297,8 @@ function compareSchemas(
   const resolvedNew = resolveRef(newSchema, newSchemas, visitedNew)
   if (!resolvedOld || !resolvedNew) return
 
-  if (checkTypeChange(resolvedOld, resolvedNew, context, changes)) return
-  checkEnumChanges(resolvedOld, resolvedNew, context, changes)
+  if (checkTypeChange(resolvedOld, resolvedNew, context, changes, isRequestContext)) return
+  checkEnumChanges(resolvedOld, resolvedNew, context, changes, isRequestContext)
   checkPropertyChanges(resolvedOld, resolvedNew, context, ctx)
   checkArrayItems(resolvedOld, resolvedNew, context, ctx)
 }
@@ -285,11 +317,13 @@ function checkTypeChange(
   oldSchema: Schema,
   newSchema: Schema,
   context: string,
-  changes: BreakingChange[]
+  changes: BreakingChange[],
+  isRequestContext: boolean
 ): boolean {
   const oldType = normalizeType(oldSchema.type)
   const newType = normalizeType(newSchema.type)
 
+  // Type changed
   if (oldType && newType && oldType !== newType) {
     changes.push({
       type: 'field-type-changed',
@@ -299,6 +333,18 @@ function checkTypeChange(
     })
     return true
   }
+
+  // New type constraint added (old had no type, new has type)
+  if (!oldType && newType) {
+    changes.push({
+      type: 'field-type-changed',
+      severity: isRequestContext ? 'breaking' : 'warning',
+      path: context,
+      message: `Type constraint added: ${newSchema.type}`,
+    })
+    return true
+  }
+
   return false
 }
 
@@ -307,8 +353,20 @@ function checkEnumChanges(
   oldSchema: Schema,
   newSchema: Schema,
   context: string,
-  changes: BreakingChange[]
+  changes: BreakingChange[],
+  isRequestContext: boolean
 ): void {
+  // New enum constraint added (old had no enum, new has enum)
+  if (!oldSchema.enum && newSchema.enum) {
+    changes.push({
+      type: 'enum-value-removed',
+      severity: isRequestContext ? 'breaking' : 'warning',
+      path: context,
+      message: `Enum constraint added: ${newSchema.enum.map(v => JSON.stringify(v)).join(', ')}`,
+    })
+    return
+  }
+
   if (!oldSchema.enum || !newSchema.enum) return
 
   const oldValues = new Set(oldSchema.enum.map(v => JSON.stringify(v)))
