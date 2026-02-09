@@ -38,7 +38,7 @@ export async function verifyCommand(options: VerifyOptions): Promise<void> {
 
     // Load contracts
     spinner.text = 'Loading contracts...'
-    const store = new ContractStore(options.contract || DEFAULTS.CONTRACTS_DIR)
+    const store = new ContractStore(config?.contracts?.dir || options.contract || DEFAULTS.CONTRACTS_DIR)
     const contractSummaries = await store.list()
 
     if (contractSummaries.length === 0) {

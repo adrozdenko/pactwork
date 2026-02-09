@@ -135,6 +135,17 @@ describe('parseScenario (internal)', () => {
   it('should handle operationId.scenarioName format via handleScenarioChange', async () => {
     const mockWorker = { use: vi.fn(), resetHandlers: vi.fn() };
     setWorker(mockWorker);
+    setGlobalConfig({
+      handlers: [],
+      handlerMeta: {
+        getUser: { operationId: 'getUser', method: 'GET', path: '/api/users/:id', index: 0 },
+      },
+      scenarios: {
+        getUser: {
+          notFound: { name: 'Not Found', status: 404, data: { error: 'User not found' } },
+        },
+      },
+    });
 
     // This tests that the format is parsed correctly
     await handleScenarioChange({ scenario: 'getUser.notFound' });

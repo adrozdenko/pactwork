@@ -415,6 +415,48 @@ describe('generateTypes', () => {
     expect(result.types).not.toContain('UploadRequest')
   })
 
+  it('should not generate request types for non-JSON content types', () => {
+    const spec: ParsedSpec = {
+      version: '3.0',
+      info: { title: 'Test', version: '1.0.0' },
+      endpoints: [
+        {
+          path: '/form',
+          method: 'post',
+          operationId: 'submitForm',
+          parameters: [],
+          requestBody: {
+            content: {
+              'application/x-www-form-urlencoded': {
+                schema: { type: 'object', properties: { name: { type: 'string' } } },
+              },
+            },
+          },
+          responses: {},
+        },
+        {
+          path: '/text',
+          method: 'post',
+          operationId: 'submitText',
+          parameters: [],
+          requestBody: {
+            content: {
+              'text/plain': {
+                schema: { type: 'string' },
+              },
+            },
+          },
+          responses: {},
+        },
+      ],
+      schemas: {},
+    }
+
+    const result = generateTypes(spec)
+    expect(result.types).not.toContain('SubmitFormRequest')
+    expect(result.types).not.toContain('SubmitTextRequest')
+  })
+
   it('should handle pascalCase edge cases', () => {
     const spec: ParsedSpec = {
       version: '3.0',

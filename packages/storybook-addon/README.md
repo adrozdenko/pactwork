@@ -18,7 +18,7 @@
 ## Requirements
 
 - Storybook 10.x (ESM-only)
-- Node.js 20.19+
+- Node.js >=20.11.0
 - [Pactwork](https://github.com/adrozdenko/pactwork) 1.1.0+
 - MSW 2.0+
 

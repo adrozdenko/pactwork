@@ -6,7 +6,7 @@ import { generateScenarios, formatScenariosList, getScenarioCoverage } from '../
 import { EXIT_CODES } from '../../constants.js'
 import { handleCommandError } from '../utils.js'
 
-interface ScenariosOptions {
+export interface ScenariosOptions {
   spec?: string
   coverage?: boolean
   format?: 'console' | 'json'

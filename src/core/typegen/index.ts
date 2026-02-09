@@ -121,7 +121,8 @@ function generateParamType(
   for (const param of params) {
     const optional = param.required ? '' : '?'
     const paramType = param.schema ? schemaToTypeString(param.schema, ctx.schemas) : 'string'
-    ctx.lines.push(`  ${param.name}${optional}: ${paramType};`)
+    const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(param.name) ? param.name : `'${param.name}'`
+    ctx.lines.push(`  ${key}${optional}: ${paramType};`)
   }
   ctx.lines.push('}')
   ctx.lines.push('')

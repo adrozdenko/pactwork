@@ -168,6 +168,9 @@ export function times(
   n: number,
   factory: (index: number) => HandlerTransformer
 ): HandlerTransformer[] {
+  if (!Number.isInteger(n) || n < 0) {
+    throw new RangeError(`times: n must be a non-negative integer, got ${n}`)
+  }
   return Array.from({ length: n }, (_, i) => factory(i));
 }
 

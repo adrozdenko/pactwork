@@ -136,6 +136,7 @@ function extractResponses(operation: OpenAPIV3.OperationObject): Record<string, 
 
   if (operation.responses) {
     for (const [statusCode, response] of Object.entries(operation.responses)) {
+      if ('$ref' in response) continue // Skip unresolved references
       const resp = response as OpenAPIV3.ResponseObject
       responses[statusCode] = {
         description: resp.description,
@@ -185,7 +186,7 @@ function normalizeSchema(schema: OpenAPIV3.SchemaObject): Schema {
   const schemaAny = schema as Record<string, unknown>
 
   return {
-    type: schema.type as string | undefined,
+    type: schema.type as string | string[] | undefined,
     format: schema.format,
     properties: schema.properties
       ? Object.fromEntries(
