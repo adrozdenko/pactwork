@@ -31,10 +31,33 @@ function resolveRef(
     if (visited.has(schema.$ref)) return null; // Cycle detected
     visited.add(schema.$ref);
     const refName = schema.$ref.replace('#/components/schemas/', '');
-    return schemas[refName] || schema;
+    return schemas[refName] || null;
   }
   return schema;
 }
+
+// Recursive resolution: propagate the visited Set through nested schemas
+function resolveAllRefs(
+  schema: Schema,
+  schemas: Record<string, Schema>,
+  visited: Set<string> = new Set()
+): Schema | null {
+  const resolved = resolveRef(schema, schemas, visited);
+  if (!resolved) return null; // Cycle or missing ref
+
+  // Recursively resolve nested properties
+  if (resolved.properties) {
+    for (const [key, prop] of Object.entries(resolved.properties)) {
+      const resolvedProp = resolveAllRefs(prop, schemas, visited);
+      if (resolvedProp) resolved.properties[key] = resolvedProp;
+    }
+  }
+  return resolved;
+}
+
+// Example: Tree has children: Tree[] — a circular reference.
+// resolveAllRefs(treeSchema, schemas) resolves children once,
+// then returns null on the second visit, preventing infinite recursion.
 ```
 
 ## Why

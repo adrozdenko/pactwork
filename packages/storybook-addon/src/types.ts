@@ -143,9 +143,11 @@ export interface NetworkChangePayload {
 /**
  * Handler info displayed in the panel.
  */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+
 export interface HandlerInfo {
   operationId: string;
-  method: string;
+  method: HttpMethod;
   path: string;
   availableScenarios: string[];
 }

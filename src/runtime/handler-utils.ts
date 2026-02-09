@@ -179,7 +179,7 @@ export async function simulateHandler(
 ): Promise<Response> {
   // MSW v2 stores the resolver on the handler instance (not on handler.info).
   // Access it via the internal property since there is no public API for this.
-  const handlerAny = handler as Record<string, unknown>;
+  const handlerAny = handler as unknown as Record<string, unknown>;
   const resolver = handlerAny.resolver as
     | ((info: { request: Request }) => Promise<Response> | Response)
     | undefined;

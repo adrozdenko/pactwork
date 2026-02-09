@@ -40,6 +40,6 @@ case 'abort': {
 
 ## Why It's Wrong
 
-Without braces, `const`/`let` declarations are hoisted to the switch scope, potentially causing 'already declared' errors or accessing uninitialized variables from other cases.
+Without braces, `const`/`let` declarations are scoped to the entire `switch` block (not per-`case`), causing Temporal Dead Zone (TDZ) errors and duplicate declaration conflicts across `case` clauses.
 
 

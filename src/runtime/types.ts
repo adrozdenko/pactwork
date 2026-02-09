@@ -155,7 +155,7 @@ export interface RuntimeState {
  * Used internally for handler replacement.
  */
 export type HandlerFactory = (
-  method: string,
+  method: HandlerMetadata['method'],
   path: string,
   resolver: (info: { request: Request }) => Promise<Response> | Response
 ) => HttpHandler;

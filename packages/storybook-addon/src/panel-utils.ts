@@ -8,7 +8,7 @@ export function getStatusColor(status: number): string {
 }
 
 export function getMethodColor(method: string): string {
-  switch (method) {
+  switch (method?.toUpperCase()) {
     case 'GET': return '#61affe';
     case 'POST': return '#49cc90';
     case 'PUT': return '#fca130';
