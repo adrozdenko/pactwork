@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-09
+
 ### Added
 
 - **Phase 5: Coverage Badge** — `pactwork coverage` command
@@ -15,24 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Per-operation and global coverage metrics
   - Four output formats: console, JSON, markdown, GitHub Actions annotations
   - CI gate with `--min-coverage <n>` threshold enforcement (exit 1 when below)
-
-### Changed
-
-- **Clean Code Refactoring** — Applied Uncle Bob principles across codebase
-  - Extract shared utilities to `src/core/utils/` (DRY principle)
-    - `github-escape.ts`: GitHub Actions annotation escaping
-    - `path-matcher.ts`: OpenAPI/MSW path matching logic
-    - `hash.ts`: Spec content hashing with configurable length
-  - Add named constants: `SCHEMA`, `COVERAGE_THRESHOLDS`, `CLI_LIMITS`
-
-### Fixed
-
-- Fix `pathsMatch` argument order in validator (was causing false negatives)
-
-## [1.2.0] - 2026-02-09
-
-### Added
-
 - **Storybook Addon v1.0** — Production-ready `@pactwork/storybook-addon`
   - Toolbar controls for scenario, latency, and network state (via Storybook globalTypes)
   - Observability panel showing current state, request logs, and available handlers
@@ -43,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Clean Code Refactoring** — Applied Uncle Bob principles across codebase
+  - Extract shared utilities to `src/core/utils/` (DRY principle)
+    - `github-escape.ts`: GitHub Actions annotation escaping
+    - `path-matcher.ts`: OpenAPI/MSW path matching logic
+    - `hash.ts`: Spec content hashing with configurable length
+  - Add named constants: `SCHEMA`, `COVERAGE_THRESHOLDS`, `CLI_LIMITS`
 - **Addon Architecture Redesign** — Separated control from observability
   - Toolbar (globalTypes) handles state control — reliable cross-iframe communication
   - Panel provides observability — request logs, state display, handler info
@@ -50,18 +40,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build System** — Fixed DTS generation for addon package
   - Added tsconfig path mappings for `pactwork/runtime` peer dependency
   - Proper declaration file generation for all exports
+- **Node.js Requirement** — Minimum version aligned to >=20.11.0 across package.json, CI, and README
 
 ### Removed
 
 - **Orphaned Code Cleanup**
   - Removed `Panel.styles.ts` (unused after Panel rewrite)
   - Removed `CoverageSection.tsx` (Phase 5 feature, not yet integrated)
+- Dropped Node.js 18 from CI test matrix
+
+### Security
+
+- Disable external `$ref` resolution in OpenAPI parser to prevent SSRF attacks (`resolve: { external: false }`)
 
 ### Fixed
 
+- Fix `pathsMatch` argument order in validator (was causing false negatives)
+- Add runtime HTTP method validation in `withSequence` before indexing MSW `http` namespace
+- Correct breaking change type for request media type removal and normalize type messages
 - Fixed `import.meta.resolve()` returning file:// URLs that esbuild couldn't resolve
 - Fixed Panel not updating when toolbar controls changed
 - Fixed TypeScript declaration build errors for peer dependency types
+- Full codebase review via CodeRabbit (10 rounds, 44+ issues resolved)
 
 ## [1.1.0] - 2026-02-06
 

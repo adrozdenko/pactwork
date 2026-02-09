@@ -25,6 +25,7 @@ Pactwork enables AI agents to keep API mocks perfectly in sync with OpenAPI spec
 | Scenario catalog | v1.1.0 | Generate typed scenarios from spec |
 | Runtime utilities | v1.1.0 | `applyScenario`, `withLatency`, `withSequence`, etc. |
 | Storybook addon | v1.2.0 | `@pactwork/storybook-addon` for scenario control |
+| Coverage reporting | v1.2.0 | `pactwork coverage` for Storybook story analysis |
 
 ---
 
@@ -139,6 +140,6 @@ Want to help build the Storybook addon? See [CONTRIBUTING.md](CONTRIBUTING.md).
 | Phase | Target | Status |
 |-------|--------|--------|
 | Phase 4: Storybook | Q1 2026 | ✅ Complete |
-| Phase 5: Coverage Badge | Q2 2026 | 🔜 Next |
+| Phase 5: Coverage Badge | Q1 2026 | ✅ Complete |
 
 *Timelines are estimates. We ship when it's ready.*
