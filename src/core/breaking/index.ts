@@ -10,6 +10,7 @@ export type BreakingChangeType =
   | 'parameter-removed'
   | 'parameter-required'
   | 'response-removed'
+  | 'media-type-removed'
   | 'schema-removed'
 
 export type BreakingChangeSeverity = 'breaking' | 'warning' | 'info'
@@ -178,7 +179,7 @@ function compareRequestBody(
 
     if (oldSchema && !newSchema) {
       changes.push({
-        type: 'response-removed',
+        type: 'media-type-removed',
         severity: 'warning',
         path: newEndpoint.path,
         method: newEndpoint.method,
@@ -329,7 +330,7 @@ function checkTypeChange(
       type: 'field-type-changed',
       severity: 'breaking',
       path: context,
-      message: `Type changed from ${oldSchema.type} to ${newSchema.type}`,
+      message: `Type changed from ${oldType} to ${newType}`,
     })
     return true
   }
@@ -340,7 +341,7 @@ function checkTypeChange(
       type: 'field-type-changed',
       severity: isRequestContext ? 'breaking' : 'warning',
       path: context,
-      message: `Type constraint added: ${newSchema.type}`,
+      message: `Type constraint added: ${newType}`,
     })
     return true
   }
