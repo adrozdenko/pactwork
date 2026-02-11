@@ -65,7 +65,7 @@ export type {
 } from './types.js';
 
 // Constants - For advanced customization
-export { ADDON_ID, PANEL_ID, PARAM_KEY, EVENTS } from './constants.js';
+export { ADDON_ID, PANEL_ID, TOOL_ID, PARAM_KEY, EVENTS } from './constants.js';
 
 // Decorator - For manual registration
 export {

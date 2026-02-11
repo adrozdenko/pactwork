@@ -10,6 +10,9 @@ export const ADDON_ID = 'pactwork';
 /** Panel identifier */
 export const PANEL_ID = `${ADDON_ID}/panel`;
 
+/** Toolbar identifier */
+export const TOOL_ID = `${ADDON_ID}/tool`;
+
 /** Parameter key in story parameters */
 export const PARAM_KEY = 'pactwork';
 

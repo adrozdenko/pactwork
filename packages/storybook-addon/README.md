@@ -8,10 +8,11 @@
 
 ## Features
 
+- **Toolbar Controls** - Scenario picker, latency presets, and network state toggle directly in Storybook's top toolbar
 - **Scenario Selection** - Switch between API response scenarios in stories via parameters
-- **Latency Control** - Add artificial delay to simulate slow networks
-- **Network Simulation** - Test timeout, abort, and network error states
-- **Addon Panel** - Interactive UI controls in Storybook's addon panel
+- **Latency Control** - Add artificial delay to simulate slow networks (None, 200ms, 1s, 3s presets)
+- **Network Simulation** - Test online, offline, and timeout states
+- **Addon Panel** - Observability panel showing current state, request logs, and available handlers
 - **TypeScript Support** - Full type safety with autocomplete for parameters
 - **CSF Factories** - Storybook 10 compatible with `definePreviewAddon`
 
@@ -163,14 +164,24 @@ export const ComplexState: Story = {
 };
 ```
 
+### Toolbar
+
+When Storybook is running, you'll see a Pactwork icon in the top toolbar. Click it to open the controls dropdown:
+
+- **Scenario** - Select from available scenarios or reset to default
+- **Latency** - Quick presets: None, 200ms, 1s, 3s
+- **Network** - Toggle between Online, Offline, and Timeout states
+- **Reset All** - Clear all active transformations
+
+The toolbar button shows a status summary when any transformation is active.
+
 ### Addon Panel
 
-When Storybook is running, you'll see a "Pactwork" tab in the addon panel that provides:
+The "Pactwork" tab in the addon panel provides observability:
 
-- **Scenario Selector** - Dropdown to switch scenarios in real-time
-- **Latency Slider** - Adjust delay from 0-10 seconds
-- **Network State** - Toggle timeout/abort/network-error states
-- **Handler List** - View all available handlers and their scenarios
+- **Current State** - Shows active scenario, latency, and network state
+- **Request Log** - Live log of intercepted API requests with method, path, status, and timing
+- **Handler List** - View all available handlers and their scenario counts
 
 ## API Reference
 
@@ -216,12 +227,12 @@ For advanced integrations, the addon uses these channel events:
 
 | Event | Direction | Description |
 |-------|-----------|-------------|
-| `pactwork/scenario-change` | Panel → Preview | Scenario selection changed |
-| `pactwork/latency-change` | Panel → Preview | Latency value changed |
-| `pactwork/network-change` | Panel → Preview | Network state changed |
+| `pactwork/scenario-change` | Toolbar → Preview | Scenario selection changed |
+| `pactwork/latency-change` | Toolbar → Preview | Latency value changed |
+| `pactwork/network-change` | Toolbar → Preview | Network state changed |
 | `pactwork/state-update` | Preview → Panel | Current state updated |
-| `pactwork/handlers-ready` | Preview → Panel | Handler info available |
-| `pactwork/reset` | Panel → Preview | Reset all transformations |
+| `pactwork/handlers-ready` | Preview → Toolbar/Panel | Handler info available |
+| `pactwork/reset` | Toolbar → Preview | Reset all transformations |
 
 ## Storybook 10 Migration
 

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Storybook Addon Toolbar** — `@pactwork/storybook-addon` v1.1.0
+  - Toolbar icon with dropdown controls in Storybook's top toolbar
+  - Scenario picker with live switching between available API scenarios
+  - Latency presets (None, 200ms, 1s, 3s) for quick network delay simulation
+  - Network state toggle (Online, Offline, Timeout)
+  - Reset All button to clear active transformations
+  - Status summary badge on toolbar icon when transformations are active
+  - Fixed positioning with proper z-index to render above Storybook UI
+  - Explicit text colors for reliable rendering across Storybook themes
+
 ## [1.2.0] - 2026-02-09
 
 ### Added
